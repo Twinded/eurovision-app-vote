@@ -13,14 +13,14 @@
           </svg>
         </button>
         <h1 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-300">
-          {{ countryName }}
+          {{ countryTitle }}
         </h1>
         <div class="w-10"></div> <!-- Spacer for balance -->
       </div>
     </header>
 
     <!-- Main content -->
-    <main class="flex-1 px-4 py-6 overflow-y-auto">
+    <main class="flex-1 px-4 py-4 overflow-y-auto">
       <div class="max-w-md mx-auto">
         <!-- Loading state -->
         <div v-if="loading" class="flex flex-col items-center justify-center h-64">
@@ -39,26 +39,31 @@
             </svg>
           </div>
           <p class="text-xl mb-3 font-medium text-gray-100">Aucun vote pour le moment</p>
-          <p class="text-pink-300 text-sm">Soyez le premier à voter pour {{ countryName }} !</p>
+          <p class="text-pink-300 text-sm">Soyez le premier à voter pour {{ countryTitle }} !</p>
         </div>
 
         <!-- Votes exist state -->
         <div v-else class="space-y-6">
+          <!-- Country flag and info -->
+          <div class="flex items-center justify-center mb-2">
+            <CountryFlag :countryCode="countryCode" :countryName="countryTitle" class="w-20 h-auto rounded-lg shadow-lg" />
+          </div>
+          
           <!-- Average score card -->
-          <div class="bg-black/50 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-pink-700/30 overflow-hidden relative">
+          <div class="bg-black/50 backdrop-blur-md rounded-2xl p-5 shadow-2xl border border-pink-700/30 overflow-hidden relative">
             <div class="absolute -top-24 -right-24 w-48 h-48 bg-pink-600/10 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl"></div>
             
-            <div class="flex justify-between items-center mb-4 relative z-10">
+            <div class="text-center mb-3 relative z-10">
               <h2 class="text-lg font-medium text-pink-300">Note moyenne</h2>
-              <div class="flex items-baseline">
-                <span class="text-4xl font-bold text-white">{{ averageNote.toFixed(1) }}</span>
+              <div class="flex items-baseline justify-center mt-1">
+                <span class="text-5xl font-bold text-white">{{ averageNote.toFixed(1) }}</span>
                 <span class="text-sm text-pink-300 ml-1">/12</span>
               </div>
             </div>
             
             <!-- Progress bar -->
-            <div class="h-3 bg-gray-800 rounded-full overflow-hidden shadow-inner relative z-10">
+            <div class="h-3 bg-gray-800 rounded-full overflow-hidden shadow-inner relative z-10 mt-2">
               <div 
                 class="h-full rounded-full bg-gradient-to-r from-pink-600 to-purple-500" 
                 :style="{ width: `${(averageNote / 12) * 100}%` }"
@@ -66,7 +71,7 @@
             </div>
             
             <!-- Vote count -->
-            <div class="flex justify-between items-center mt-4 text-xs text-gray-400 relative z-10">
+            <div class="flex justify-between items-center mt-3 text-xs text-gray-400 relative z-10">
               <div class="flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -77,56 +82,58 @@
             </div>
           </div>
 
-          <!-- Individual votes -->
-          <h3 class="text-lg font-medium text-pink-300 px-1 mt-8 mb-4 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Tous les votes
-          </h3>
-          
-          <div class="space-y-3">
-            <div 
-              v-for="vote in countryVotes" 
-              :key="vote.user" 
-              class="flex items-center justify-between p-4 bg-black/40 backdrop-blur-sm rounded-xl border-l-4 shadow-lg transition-all duration-200 active:scale-98 hover:bg-gray-900/40"
-              :class="[
-                vote.rawNote >= 10 ? 'border-pink-500' : 
-                vote.rawNote >= 8 ? 'border-purple-500' : 
-                vote.rawNote >= 6 ? 'border-pink-700' : 
-                'border-purple-700'
-              ]"
-            >
-              <div class="flex items-center space-x-3">
-                <div class="relative">
-                  <div class="absolute -inset-0.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 opacity-50 blur-sm"></div>
-                  <img 
-                    v-if="vote.avatar" 
-                    :src="vote.avatar" 
-                    alt="Avatar" 
-                    class="w-10 h-10 rounded-full object-cover border border-gray-800 relative z-10"
-                  />
-                  <div 
-                    v-else 
-                    class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold relative z-10" 
-                    :style="{ backgroundColor: vote.color || '#EC4899' }"
-                  >
-                    {{ vote.user.charAt(0).toUpperCase() }}
-                  </div>
-                </div>
-                <span class="font-medium text-sm">{{ vote.user }}</span>
-              </div>
-              
+          <!-- Individual votes section -->
+          <div class="mt-8">
+            <h3 class="text-base font-medium text-pink-300 mb-3 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Votes individuels ({{ countryVotes.length }})
+            </h3>
+            
+            <div class="space-y-2">
               <div 
-                class="flex items-center justify-center min-w-[3rem] h-10 rounded-full font-bold text-sm"
+                v-for="vote in countryVotes" 
+                :key="vote.user" 
+                class="flex items-center justify-between p-3 bg-black/40 backdrop-blur-sm rounded-xl border-l-4 shadow-md transition-all duration-200 hover:bg-gray-900/40"
                 :class="[
-                  vote.rawNote >= 10 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 
-                  vote.rawNote >= 8 ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white' : 
-                  vote.rawNote >= 6 ? 'bg-gradient-to-r from-pink-700 to-purple-700 text-white' : 
-                  'bg-gradient-to-r from-purple-800 to-pink-900 text-white'
+                  vote.rawNote >= 10 ? 'border-pink-500' : 
+                  vote.rawNote >= 8 ? 'border-purple-500' : 
+                  vote.rawNote >= 6 ? 'border-pink-700' : 
+                  'border-purple-700'
                 ]"
               >
-                {{ vote.rawNote }}
+                <div class="flex items-center space-x-3">
+                  <div class="relative">
+                    <div class="absolute -inset-0.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 opacity-50 blur-sm"></div>
+                    <img 
+                      v-if="vote.avatar" 
+                      :src="vote.avatar" 
+                      alt="Avatar" 
+                      class="w-9 h-9 rounded-full object-cover border border-gray-800 relative z-10"
+                    />
+                    <div 
+                      v-else 
+                      class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold relative z-10" 
+                      :style="{ backgroundColor: vote.color || '#EC4899' }"
+                    >
+                      {{ vote.user.charAt(0).toUpperCase() }}
+                    </div>
+                  </div>
+                  <span class="font-medium text-sm">{{ vote.user }}</span>
+                </div>
+                
+                <div 
+                  class="flex items-center justify-center min-w-[2.75rem] h-8 rounded-full font-bold text-sm"
+                  :class="[
+                    vote.rawNote >= 10 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 
+                    vote.rawNote >= 8 ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white' : 
+                    vote.rawNote >= 6 ? 'bg-gradient-to-r from-pink-700 to-purple-700 text-white' : 
+                    'bg-gradient-to-r from-purple-800 to-pink-900 text-white'
+                  ]"
+                >
+                  {{ vote.rawNote }}
+                </div>
               </div>
             </div>
           </div>
@@ -138,18 +145,27 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { db } from '@/firebase/config';
 import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { useUserStore } from '@/store/user';
+import CountryFlag from '@/components/CountryFlag.vue';
+import { countries } from '@/data/countries';
 
 const route = useRoute();
-const router = useRouter();
 const countryName = route.params.country;
 const loading = ref(true);
 const countryVotes = ref([]);
 const userStore = useUserStore();
 const totalUsers = ref(0);
+
+// Find the country data from the countries array
+const countryData = computed(() => {
+  return countries.find(c => c.name === countryName) || { name: countryName, code: 'eu', title: countryName };
+});
+
+const countryCode = computed(() => countryData.value.code.toLowerCase());
+const countryTitle = computed(() => countryData.value.title);
 
 const averageNote = computed(() => {
   if (countryVotes.value.length === 0) return 0;

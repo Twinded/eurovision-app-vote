@@ -1,111 +1,146 @@
 <template>
   <div class="flex flex-col min-h-screen bg-gradient-to-br from-pink-600 via-purple-800 to-black text-white">
     <!-- Header -->
-    <header class="pt-10 pb-6 px-4 text-center">
-      <h1 class="text-3xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-200">
+    <header class="pt-6 pb-4 px-4 text-center">
+      <h1 class="text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-200">
         CLASSEMENT EUROVISION
       </h1>
-      <div class="flex justify-center gap-3 mt-2">
-        <span class="inline-block animate-pulse delay-75 text-xl">🎵</span>
-        <span class="inline-block animate-pulse delay-150 text-xl">🎤</span>
-        <span class="inline-block animate-pulse delay-300 text-xl">🏆</span>
+      <div class="flex justify-center gap-3 mt-1">
+        <span class="inline-block animate-pulse delay-75">🎵</span>
+        <span class="inline-block animate-pulse delay-150">🎤</span>
+        <span class="inline-block animate-pulse delay-300">🏆</span>
       </div>
     </header>
 
     <!-- Loading State -->
     <div v-if="loading" class="flex-1 flex flex-col items-center justify-center p-6">
-      <div class="w-16 h-16 border-4 border-pink-400 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p class="text-lg text-pink-200 animate-pulse">Chargement des résultats...</p>
+      <div class="w-12 h-12 border-3 border-pink-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+      <p class="text-sm text-pink-200 animate-pulse">Chargement des résultats...</p>
     </div>
 
     <!-- Results List -->
-    <div v-else class="flex-1 px-4 pb-20 pt-4 overflow-y-auto">
-      <div class="max-w-md mx-auto space-y-4">
-        <!-- Top 3 Results -->
-        <div v-for="(item, index) in sortedCountryResults.slice(0, 3)" :key="item.country" 
-          class="relative overflow-hidden rounded-2xl shadow-xl transform transition-all duration-300 hover:scale-102 active:scale-98 cursor-pointer"
-          :class="[
-            index === 0 ? 'bg-gradient-to-r from-yellow-600/30 to-amber-700/30 border border-yellow-500/50' : 
-            index === 1 ? 'bg-gradient-to-r from-gray-700/30 to-gray-800/30 border border-gray-500/50' : 
-            'bg-gradient-to-r from-amber-800/30 to-amber-900/30 border border-amber-600/50'
-          ]"
-          @click="goToCountryDetail(item.country)">
+    <div v-else class="flex-1 px-3 pb-20 pt-2 overflow-y-auto">
+      <div class="max-w-md mx-auto">
+        <!-- Podium Section -->
+        <div class="mb-6">
+          <h2 class="text-sm uppercase tracking-wider text-pink-300 mb-3 font-semibold px-1">Podium</h2>
           
-          <div class="backdrop-blur-sm p-5 flex items-center">
-            <!-- Rank Badge -->
-            <div class="absolute -left-3 top-1/2 transform -translate-y-1/2 w-12 h-12 flex items-center justify-center font-bold rounded-full shadow-lg"
-              :class="[
-                index === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-black' : 
-                index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-black' : 
-                'bg-gradient-to-br from-amber-600 to-amber-800 text-white'
-              ]">
-              {{ index + 1 }}
-            </div>
-            
-            <!-- Country Info -->
-            <div class="flex items-center ml-10 flex-1">
-              <div class="relative group">
-                <div class="absolute -inset-1 rounded-full opacity-75 blur-sm group-hover:opacity-100 transition duration-300"
-                  :class="[
-                    index === 0 ? 'bg-yellow-500/50' : 
-                    index === 1 ? 'bg-gray-400/50' : 
-                    'bg-amber-600/50'
-                  ]">
+          <!-- Gold Medal (1st Place) -->
+          <div v-if="sortedCountryResults.length > 0" 
+            class="relative overflow-hidden rounded-xl shadow-xl transform transition-all duration-300 mb-4 bg-gradient-to-r from-yellow-600/30 to-amber-700/30 border border-yellow-500/50"
+            @click="goToCountryDetail(sortedCountryResults[0].name)">
+            <div class="absolute top-0 right-0 bg-yellow-500/80 text-black text-xs font-bold px-2 py-1 rounded-bl-md">1er</div>
+            <div class="backdrop-blur-sm p-4 flex items-center">
+              <div class="flex items-center flex-1">
+                <div class="w-14 h-10 flex items-center justify-center overflow-hidden">
+                  <CountryFlag :countryCode="sortedCountryResults[0].code" :countryName="sortedCountryResults[0].title" class="w-full h-auto rounded shadow-md object-cover" />
                 </div>
-                <CountryFlag :countryCode="item.code" :countryName="item.country" class="w-16 h-auto rounded shadow-md relative z-10" />
+                <span class="ml-3 text-lg font-bold">{{ sortedCountryResults[0].title }}</span>
               </div>
-              <span class="ml-4 text-xl font-bold">{{ item.country }}</span>
+              <div class="flex items-baseline">
+                <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-400">
+                  {{ sortedCountryResults[0].avgNote.toFixed(1) }}
+                </span>
+                <span class="text-xs ml-1 opacity-80">/12</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Silver & Bronze (2nd & 3rd Places) -->
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Silver Medal (2nd Place) -->
+            <div v-if="sortedCountryResults.length > 1" 
+              class="relative overflow-hidden rounded-xl shadow-lg transform transition-all duration-300 bg-gradient-to-r from-gray-700/30 to-gray-800/30 border border-gray-500/50"
+              @click="goToCountryDetail(sortedCountryResults[1].name)">
+              <div class="absolute top-0 right-0 bg-gray-400/80 text-black text-xs font-bold px-2 py-1 rounded-bl-md">2e</div>
+              <div class="backdrop-blur-sm p-3">
+                <div class="flex justify-center mb-2 h-8">
+                  <div class="w-12 h-8 flex items-center justify-center overflow-hidden">
+                    <CountryFlag :countryCode="sortedCountryResults[1].code" :countryName="sortedCountryResults[1].title" class="w-full h-auto rounded shadow-md object-cover" />
+                  </div>
+                </div>
+                <div class="text-center">
+                  <div class="text-sm font-medium truncate">{{ sortedCountryResults[1].title }}</div>
+                  <div class="flex items-baseline justify-center mt-1">
+                    <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-400">
+                      {{ sortedCountryResults[1].avgNote.toFixed(1) }}
+                    </span>
+                    <span class="text-xs ml-1 opacity-80">/12</span>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <!-- Score -->
-            <div class="flex items-baseline">
-              <span class="text-3xl font-bold text-transparent bg-clip-text" 
-                :class="[
-                  index === 0 ? 'bg-gradient-to-r from-yellow-300 to-amber-400' : 
-                  index === 1 ? 'bg-gradient-to-r from-gray-300 to-gray-400' : 
-                  'bg-gradient-to-r from-amber-500 to-amber-600'
-                ]">
-                {{ item.avgNote.toFixed(1) }}
-              </span>
-              <span class="text-sm ml-1 opacity-80">/12</span>
+            <!-- Bronze Medal (3rd Place) -->
+            <div v-if="sortedCountryResults.length > 2" 
+              class="relative overflow-hidden rounded-xl shadow-lg transform transition-all duration-300 bg-gradient-to-r from-amber-800/30 to-amber-900/30 border border-amber-600/50"
+              @click="goToCountryDetail(sortedCountryResults[2].name)">
+              <div class="absolute top-0 right-0 bg-amber-600/80 text-white text-xs font-bold px-2 py-1 rounded-bl-md">3e</div>
+              <div class="backdrop-blur-sm p-3">
+                <div class="flex justify-center mb-2 h-8">
+                  <div class="w-12 h-8 flex items-center justify-center overflow-hidden">
+                    <CountryFlag :countryCode="sortedCountryResults[2].code" :countryName="sortedCountryResults[2].title" class="w-full h-auto rounded shadow-md object-cover" />
+                  </div>
+                </div>
+                <div class="text-center">
+                  <div class="text-sm font-medium truncate">{{ sortedCountryResults[2].title }}</div>
+                  <div class="flex items-baseline justify-center mt-1">
+                    <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-600">
+                      {{ sortedCountryResults[2].avgNote.toFixed(1) }}
+                    </span>
+                    <span class="text-xs ml-1 opacity-80">/12</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Other Results -->
-        <div v-for="(item, index) in sortedCountryResults.slice(3)" :key="item.country" 
-          class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-purple-900/30 transition-all duration-300 hover:bg-black/50 hover:border-purple-700/50 active:scale-98 cursor-pointer"
-          @click="goToCountryDetail(item.country)">
+        <!-- Other Rankings Section -->
+        <div v-if="sortedCountryResults.length > 3">
+          <h2 class="text-sm uppercase tracking-wider text-pink-300 mb-3 font-semibold px-1">Autres pays</h2>
           
-          <div class="p-4 flex items-center">
-            <!-- Rank -->
-            <div class="w-9 h-9 flex items-center justify-center font-bold rounded-full bg-gradient-to-br from-purple-800 to-pink-900 text-white text-sm shadow-md">
-              {{ index + 4 }}
-            </div>
-            
-            <!-- Country Info -->
-            <div class="flex items-center ml-3 flex-1">
-              <CountryFlag :countryCode="item.code" :countryName="item.country" class="w-12 h-auto rounded shadow-md" />
-              <span class="ml-3 font-medium">{{ item.country }}</span>
-            </div>
-            
-            <!-- Score -->
-            <div class="flex items-baseline">
-              <span class="text-xl font-bold text-transparent bg-clip-text" 
-                :class="[
-                  item.avgNote >= 10 ? 'bg-gradient-to-r from-yellow-300 to-yellow-500' : 
-                  item.avgNote >= 8 ? 'bg-gradient-to-r from-green-300 to-green-500' : 
-                  item.avgNote >= 6 ? 'bg-gradient-to-r from-blue-300 to-blue-500' : 
-                  'bg-gradient-to-r from-gray-400 to-gray-500'
-                ]">
-                {{ item.avgNote.toFixed(1) }}
-              </span>
-              <span class="text-xs ml-1 opacity-70">/12</span>
+          <div class="space-y-2">
+            <div v-for="(item, index) in sortedCountryResults.slice(3)" :key="item.name" 
+              class="bg-black/40 backdrop-blur-sm rounded-lg overflow-hidden shadow-md border border-purple-900/30 transition-all duration-300 active:scale-98"
+              @click="goToCountryDetail(item.name)">
+              
+              <div class="p-3 flex items-center">
+                <!-- Rank -->
+                <div class="w-7 h-7 flex items-center justify-center font-bold rounded-full bg-gradient-to-br from-purple-800 to-pink-900 text-white text-xs shadow-sm">
+                  {{ index + 4 }}
+                </div>
+                
+                <!-- Country Info -->
+                <div class="flex items-center ml-3 flex-1">
+                  <div class="w-8 h-6 flex items-center justify-center overflow-hidden">
+                    <CountryFlag :countryCode="item.code" :countryName="item.title" class="w-full h-auto rounded shadow-sm object-cover" />
+                  </div>
+                  <span class="ml-2 font-medium text-sm">{{ item.title }}</span>
+                </div>
+                
+                <!-- Score -->
+                <div class="flex items-baseline">
+                  <span class="text-lg font-bold" 
+                    :class="getScoreColorClass(item.avgNote)">
+                    {{ item.avgNote.toFixed(1) }}
+                  </span>
+                  <span class="text-xs ml-1 opacity-70">/12</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         
-        <!-- Empty space at bottom for better scrolling -->
+        <!-- Empty state if no results -->
+        <div v-if="sortedCountryResults.length === 0" class="flex flex-col items-center justify-center py-10">
+          <div class="w-16 h-16 bg-pink-900/30 rounded-full flex items-center justify-center mb-3">
+            <span class="text-2xl">🎭</span>
+          </div>
+          <p class="text-center text-gray-400">Aucun résultat disponible pour le moment</p>
+        </div>
+        
+        <!-- Empty space at bottom for better scrolling with bottom nav -->
         <div class="h-8"></div>
       </div>
     </div>
@@ -138,7 +173,7 @@ const countryResults = computed(() => {
     const avgNote = countryVotes.length
       ? countryVotes.reduce((sum, v) => sum + Number(v.rawNote), 0) / countryVotes.length
       : 0;
-    return { country: country.name, code: country.code, avgNote };
+    return { ...country, avgNote };
   });
 });
 
@@ -148,5 +183,12 @@ const sortedCountryResults = computed(() => {
 
 function goToCountryDetail(countryName) {
   router.push(`/results/${countryName}`);
+}
+
+function getScoreColorClass(score) {
+  if (score >= 10) return 'text-yellow-400';
+  if (score >= 8) return 'text-green-400';
+  if (score >= 6) return 'text-blue-400';
+  return 'text-gray-400';
 }
 </script>
