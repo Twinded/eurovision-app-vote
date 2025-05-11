@@ -114,6 +114,40 @@
         </svg>
       </button>
       
+      <!-- Delete Profile Button -->
+      <button 
+        v-if="userExists"
+        @click="confirmDeleteProfile" 
+        class="w-full bg-black/40 border border-red-500/50 text-red-400 font-medium py-2 px-4 rounded-xl hover:bg-red-900/30 transition-all duration-300 flex items-center justify-center space-x-2 mb-6"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        <span>Supprimer mon profil</span>
+      </button>
+      
+      <!-- Confirmation Modal -->
+      <div v-if="showDeleteModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-black/80 border border-red-500/30 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-fadeIn">
+          <h3 class="text-xl font-bold text-white mb-4">Confirmer la suppression</h3>
+          <p class="text-gray-300 mb-6">Es-tu sûr de vouloir supprimer ton profil ? Cette action est irréversible.</p>
+          <div class="flex space-x-3">
+            <button 
+              @click="deleteProfile" 
+              class="flex-1 bg-red-600 text-white py-3 rounded-xl hover:bg-red-700 transition-colors duration-300"
+            >
+              Supprimer
+            </button>
+            <button 
+              @click="showDeleteModal = false" 
+              class="flex-1 bg-gray-800 text-white py-3 rounded-xl hover:bg-gray-700 transition-colors duration-300"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+      
       <!-- Footer -->
       <div class="text-center text-xs text-purple-300 opacity-80 mb-4">
         <p>© 2025 Eurovision Vote App</p>
@@ -133,7 +167,7 @@
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/store/user';
 import { useRouter } from 'vue-router';
-import { collection, addDoc, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 // Eurovision-themed colors
@@ -146,6 +180,9 @@ const userStore = useUserStore();
 const router = useRouter();
 const errorMessage = ref('');
 const deviceId = ref('');
+const userExists = ref(false);
+const showDeleteModal = ref(false);
+const userDocRef = ref(null);
 
 // Constants for image validation
 const MAX_IMAGE_SIZE = 800 * 1024; // 800KB max size for Firestore
@@ -190,6 +227,8 @@ async function fetchUserByDevice() {
     const snapshot = await getDocs(deviceQuery);
     
     if (!snapshot.empty) {
+      userExists.value = true;
+      userDocRef.value = snapshot.docs[0].ref;
       const userData = snapshot.docs[0].data();
       pseudo.value = userData.pseudo || '';
       avatar.value = userData.avatar || '';
@@ -197,6 +236,8 @@ async function fetchUserByDevice() {
       
       // Mettre à jour le store utilisateur
       userStore.setUser(pseudo.value, avatar.value, color.value);
+    } else {
+      userExists.value = false;
     }
   } catch (error) {
     console.error("Erreur lors de la récupération des données utilisateur:", error);
@@ -334,9 +375,11 @@ async function saveProfile() {
         color: finalColor,
         updatedAt: new Date(),
       });
+      userExists.value = true;
+      userDocRef.value = deviceSnapshot.docs[0].ref;
     } else if (existingSnapshot.empty) {
       // Création d'un nouvel utilisateur
-      await addDoc(usersRef, {
+      const docRef = await addDoc(usersRef, {
         pseudo: pseudo.value,
         pseudoLower: normalizedPseudo,
         avatar: finalAvatar,
@@ -344,6 +387,8 @@ async function saveProfile() {
         deviceId: deviceId.value,
         createdAt: new Date(),
       });
+      userExists.value = true;
+      userDocRef.value = docRef;
     } else {
       // Un utilisateur avec ce pseudo existe mais pas sur ce device
       errorMessage.value = "Ce pseudo est déjà utilisé. Veuillez en choisir un autre.";
@@ -359,6 +404,52 @@ async function saveProfile() {
     } else {
       errorMessage.value = "Une erreur est survenue. Veuillez réessayer.";
     }
+  }
+}
+
+function confirmDeleteProfile() {
+  showDeleteModal.value = true;
+}
+
+async function deleteProfile() {
+  try {
+    if (userDocRef.value) {
+      // Supprimer le document utilisateur
+      await deleteDoc(userDocRef.value);
+      
+      // Supprimer les votes associés à cet utilisateur (si nécessaire)
+      const votesRef = collection(db, 'votes');
+      const userVotesQuery = query(votesRef, where('deviceId', '==', deviceId.value));
+      const votesSnapshot = await getDocs(userVotesQuery);
+      
+      const deletePromises = votesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+      
+      // Réinitialiser les valeurs
+      pseudo.value = '';
+      avatar.value = '';
+      color.value = getRandomColor();
+      userExists.value = false;
+      userDocRef.value = null;
+      
+      // Réinitialiser le store
+      userStore.clearUser();
+      
+      // Fermer le modal
+      showDeleteModal.value = false;
+      
+      // Afficher un message de confirmation
+      errorMessage.value = "Ton profil a été supprimé avec succès.";
+      
+      // Attendre un peu avant de faire disparaître le message
+      setTimeout(() => {
+        errorMessage.value = '';
+      }, 3000);
+    }
+  } catch (error) {
+    console.error("Erreur lors de la suppression du profil:", error);
+    errorMessage.value = "Une erreur est survenue lors de la suppression du profil.";
+    showDeleteModal.value = false;
   }
 }
 
