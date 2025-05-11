@@ -1,23 +1,26 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-b from-indigo-900 via-purple-900 to-pink-900 text-white">
+  <div class="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-pink-600 via-purple-800 to-black text-white overflow-y-auto">
     <!-- Logo and Header -->
     <div class="w-full max-w-md">
-      <div class="text-center">
-        <img src="@/assets/logo.svg" alt="Eurovision Vote Logo" class="h-64 mx-auto animate-pulse" />
+      <div class="text-center mb-8">
+        <img src="@/assets/logo.svg" alt="Eurovision Vote Logo" class="h-32 mx-auto filter drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
       </div>
       
       <!-- Main Card -->
-      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/20 mb-6">
+      <div class="bg-black/40 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-purple-500/30 mb-8 relative overflow-hidden transform transition-all duration-500 hover:scale-[1.02]">
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-pink-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl"></div>
+        
         <!-- Avatar Preview -->
-        <div class="flex justify-center mb-6">
-          <div class="relative">
-            <div class="absolute -inset-1 rounded-full bg-gradient-to-r from-pink-500 via-yellow-400 to-blue-500 animate-pulse blur-md opacity-70"></div>
-            <div v-if="avatar" class="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white/30">
+        <div class="flex justify-center mb-8">
+          <div class="relative group">
+            <div class="absolute -inset-1 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 opacity-75 blur group-hover:opacity-100 transition duration-300 animate-pulse"></div>
+            <div v-if="avatar" class="relative w-28 h-28 rounded-full overflow-hidden border-2 border-purple-500/50 shadow-lg">
               <img :src="avatar" alt="Avatar" class="w-full h-full object-cover" />
             </div>
             <div 
               v-else 
-              class="relative w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold border-2 border-white/30"
+              class="relative w-28 h-28 rounded-full flex items-center justify-center text-white text-4xl font-bold border-2 border-purple-500/50 shadow-lg"
               :style="{ backgroundColor: color }"
             >
               {{ pseudo.charAt(0).toUpperCase() || '?' }}
@@ -26,16 +29,21 @@
         </div>
         
         <!-- Error message -->
-        <div v-if="errorMessage" class="bg-red-500/80 text-white p-3 rounded-lg text-center text-sm mb-4 animate-bounce">
-          {{ errorMessage }}
+        <div v-if="errorMessage" class="bg-red-900/60 text-white p-4 rounded-xl text-center text-sm mb-6 border-l-4 border-pink-500 animate-pulse">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-pink-300" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            {{ errorMessage }}
+          </div>
         </div>
         
         <!-- Form -->
-        <div class="space-y-4">
+        <div class="space-y-5 relative z-10">
           <!-- Pseudo Input -->
-          <div class="relative">
+          <div class="relative group">
             <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-300" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-400" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
               </svg>
             </div>
@@ -43,20 +51,20 @@
               v-model="pseudo" 
               type="text" 
               placeholder="Ton pseudo" 
-              class="w-full bg-white/20 border border-white/30 pl-10 pr-3 py-3 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
+              class="w-full bg-black/30 border border-purple-500/30 pl-10 pr-3 py-4 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition duration-300"
             />
           </div>
           
           <!-- Color Picker -->
-          <div class="bg-white/10 rounded-xl p-3 border border-white/20">
-            <p class="text-xs text-blue-200 mb-2 font-medium">Choisis ta couleur:</p>
+          <div class="bg-black/30 rounded-xl p-4 border border-purple-500/30">
+            <p class="text-sm text-purple-300 mb-3 font-medium">Choisis ta couleur:</p>
             <div class="flex justify-between items-center">
               <div 
                 v-for="colorOption in ['#FF1958', '#00C7FF', '#FFD700', '#9B59B6', '#3498DB', '#E74C3C']" 
                 :key="colorOption"
                 @click="color = colorOption"
-                class="w-10 h-10 rounded-full cursor-pointer transform hover:scale-110 transition-transform duration-200 border-2 shadow-lg"
-                :class="{ 'border-white scale-110': color === colorOption, 'border-transparent': color !== colorOption }"
+                class="w-12 h-12 rounded-full cursor-pointer transform hover:scale-110 transition-all duration-300 border-2 shadow-lg"
+                :class="{ 'border-white ring-2 ring-pink-500 scale-110': color === colorOption, 'border-transparent': color !== colorOption }"
                 :style="{ backgroundColor: colorOption }"
               ></div>
             </div>
@@ -65,11 +73,11 @@
           <!-- Avatar Upload -->
           <div class="relative group">
             <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <button class="w-full bg-white/20 border border-white/30 pl-10 pr-3 py-3 rounded-xl text-left text-blue-200 hover:bg-white/30 transition-colors duration-200">
+            <button class="w-full bg-black/30 border border-purple-500/30 pl-10 pr-3 py-4 rounded-xl text-left text-gray-300 hover:bg-purple-900/30 transition-colors duration-300">
               Choisir une photo
             </button>
             <input 
@@ -83,7 +91,7 @@
           <!-- Submit Button -->
           <button 
             @click="saveProfile" 
-            class="w-full bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold py-4 px-4 rounded-xl hover:opacity-90 transform hover:scale-102 transition-all duration-200 shadow-lg flex items-center justify-center space-x-2"
+            class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-4 px-4 rounded-xl hover:from-pink-700 hover:to-purple-700 transform hover:translate-y-[-2px] transition-all duration-300 shadow-lg shadow-pink-900/30 flex items-center justify-center space-x-2"
           >
             <span>Commencer à voter</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -94,11 +102,11 @@
       </div>
       
       <!-- Footer -->
-      <div class="text-center text-xs text-blue-200 opacity-70">
+      <div class="text-center text-xs text-purple-300 opacity-80">
         <p>© 2025 Eurovision Vote App</p>
-        <p class="mt-1 flex items-center justify-center">
+        <p class="mt-2 flex items-center justify-center">
           <span>Fait avec</span>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pink-400 mx-1" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pink-500 mx-1 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
           </svg>
           <span>pour l'Eurovision</span>

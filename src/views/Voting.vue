@@ -1,19 +1,19 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-b from-blue-900 to-purple-900 text-white overflow-y-auto">
+  <div class="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-pink-600 via-purple-800 to-black text-white overflow-y-auto">
     <!-- Loading State -->
     <div v-if="loading" class="flex flex-col items-center">
-      <div class="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-      <p class="text-lg font-medium">Chargement des pays...</p>
+      <div class="w-12 h-12 border-4 border-pink-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+      <p class="text-lg font-medium text-pink-300">Chargement des pays...</p>
     </div>
     
     <!-- All Voted State -->
-    <div v-else-if="allVoted" class="text-center bg-blue-800 bg-opacity-80 backdrop-blur-md p-6 rounded-xl shadow-xl border-2 border-yellow-400 max-w-sm w-full transform transition-all duration-500 hover:scale-105">
+    <div v-else-if="allVoted" class="text-center bg-black/60 backdrop-blur-md p-8 rounded-xl shadow-2xl border border-pink-500/50 max-w-sm w-full transform transition-all duration-500 hover:scale-105">
       <div class="text-5xl mb-4">🎉</div>
-      <h2 class="text-2xl font-bold mb-4 text-yellow-400 tracking-wide">Tous les votes sont soumis!</h2>
-      <p class="mb-6 text-base text-blue-100">Merci pour ta participation à l'Eurovision 2024!</p>
+      <h2 class="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 tracking-wide">Tous les votes sont soumis!</h2>
+      <p class="mb-6 text-base text-gray-300">Merci pour ta participation à l'Eurovision 2025!</p>
       <button 
         @click="goToResults" 
-        class="bg-yellow-400 text-blue-900 px-6 py-3 rounded-full font-bold hover:bg-yellow-300 transition transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 w-full"
+        class="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:from-pink-500 hover:to-purple-500 transition transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 w-full"
       >
         <span>Voir les résultats</span>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -25,31 +25,34 @@
     <!-- Voting Interface -->
     <div v-else class="flex flex-col items-center w-full max-w-md">
       <!-- Current Country Title -->
-      <h1 class="text-xl font-bold text-center text-yellow-400 drop-shadow-lg mb-6">
-        <span class="inline-block animate-pulse">🎵</span> 
-        <span class="tracking-wide">{{ currentCountry }}</span>
-        <span class="inline-block animate-pulse">🎵</span>
-        <span v-if="hasVotedForCurrentCountry" class="ml-2 inline-flex items-center justify-center bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+      <div class="relative mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-300 drop-shadow-lg py-2 px-4">
+          <span class="inline-block animate-pulse mr-2">🎵</span> 
+          {{ currentCountry }}
+          <span class="inline-block animate-pulse ml-2">🎵</span>
+        </h1>
+        <div v-if="hasVotedForCurrentCountry" class="absolute -top-3 -right-3 inline-flex items-center justify-center bg-pink-500 text-white px-3 py-1 rounded-full shadow-lg transform rotate-12 border border-black">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
           </svg>
-          Voté
-        </span>
-      </h1>
+          <span class="font-bold">Voté</span>
+        </div>
+      </div>
 
       <!-- Country Flag -->
-      <div ref="flagContainer" class="mb-6 transform hover:scale-105 transition duration-300 rounded-xl overflow-hidden shadow-lg border-2 border-yellow-400">
-        <CountryFlag :countryCode="currentCountryCode" :countryName="currentCountry" class="w-40 h-auto" />
+      <div ref="flagContainer" class="mb-6 transform hover:scale-105 transition duration-300 rounded-xl overflow-hidden shadow-2xl border border-pink-500/50 relative">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/40 opacity-30 pointer-events-none"></div>
+        <CountryFlag :countryCode="currentCountryCode" :countryName="currentCountry" class="w-48 h-auto" />
       </div>
 
       <!-- Vote Card - Show only if not voted or editing vote -->
-      <div v-if="!hasVotedForCurrentCountry || editingVote" ref="voteCard" class="w-full bg-blue-800 bg-opacity-80 backdrop-blur-md p-5 rounded-xl shadow-lg border-l-4 border-yellow-400 mb-6">
+      <div v-if="!hasVotedForCurrentCountry || editingVote" ref="voteCard" class="w-full bg-black/60 backdrop-blur-md p-6 rounded-xl shadow-2xl border-l-4 border-pink-500 mb-6">
         <!-- Note Display -->
         <div class="flex justify-between items-center mb-4">
-          <label class="text-yellow-400 text-base font-bold">Ta note :</label>
-          <div class="bg-blue-700 px-3 py-1 rounded-full">
-            <span ref="noteDisplay" class="text-2xl font-bold text-yellow-400">{{ note }}</span>
-            <span class="text-blue-200">/12</span>
+          <label class="text-pink-300 text-base font-bold">Ta note :</label>
+          <div class="bg-gray-900/80 px-4 py-2 rounded-full">
+            <span ref="noteDisplay" class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">{{ note }}</span>
+            <span class="text-gray-400">/12</span>
           </div>
         </div>
         
@@ -61,11 +64,11 @@
           step="1"
           v-model="note"
           :disabled="dontCare"
-          class="w-full h-3 bg-blue-600 rounded-full appearance-none cursor-pointer accent-yellow-400 mb-4"
+          class="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer accent-pink-500 mb-4"
         />
         
         <!-- Scale Indicators -->
-        <div class="flex justify-between text-xs text-blue-200 mb-4 px-1">
+        <div class="flex justify-between text-xs text-gray-400 mb-4 px-1">
           <span>0</span>
           <span>3</span>
           <span>6</span>
@@ -74,23 +77,23 @@
         </div>
         
         <!-- Don't Care Option -->
-        <div class="flex items-center mb-4 bg-blue-700 bg-opacity-50 p-3 rounded-lg">
-          <input type="checkbox" v-model="dontCare" id="dontCare" class="w-4 h-4 mr-2 accent-yellow-400" />
-          <label for="dontCare" class="text-sm text-blue-100">Je préfère une note personnalisée</label>
+        <div class="flex items-center mb-4 bg-gray-800/50 p-3 rounded-lg">
+          <input type="checkbox" v-model="dontCare" id="dontCare" class="w-4 h-4 mr-2 accent-pink-500" />
+          <label for="dontCare" class="text-sm text-gray-300">Je préfère une note personnalisée</label>
         </div>
 
         <!-- Custom Note Input -->
-        <div v-if="dontCare" class="mb-4 bg-blue-700 bg-opacity-70 p-3 rounded-lg border-l-2 border-yellow-400">
-          <label class="block text-yellow-400 text-sm font-bold mb-2">Note personnalisée</label>
+        <div v-if="dontCare" class="mb-4 bg-gray-800/70 p-4 rounded-lg border-l-2 border-pink-500">
+          <label class="block text-pink-300 text-sm font-bold mb-2">Note personnalisée</label>
           <div class="flex items-center">
             <input 
               type="number" 
               v-model.number="customNote" 
-              class="border-2 border-yellow-400 bg-blue-900 text-white p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-yellow-300 text-center text-base" 
+              class="border border-pink-500 bg-gray-900 text-white p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-400 text-center text-base" 
               placeholder="Ex: 50"
             />
-            <div class="ml-2 text-xs text-blue-200">
-              = <span class="text-yellow-400 font-bold">{{ normalizeNote(customNote || 0) }}</span>/12
+            <div class="ml-2 text-xs text-gray-400">
+              = <span class="text-pink-400 font-bold">{{ normalizeNote(customNote || 0) }}</span>/12
             </div>
           </div>
         </div>
@@ -99,7 +102,7 @@
         <button
           @click="submitVote"
           ref="submitButton"
-          class="bg-yellow-400 text-blue-900 px-4 py-3 rounded-full font-bold hover:bg-yellow-300 transition transform hover:scale-105 w-full shadow-lg flex items-center justify-center space-x-2 mt-4"
+          class="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-3 rounded-lg font-bold hover:from-pink-500 hover:to-purple-500 transition transform hover:scale-105 w-full shadow-lg flex items-center justify-center space-x-2 mt-4"
         >
           <span>{{ hasVotedForCurrentCountry ? 'Mettre à jour mon vote' : 'Voter et continuer' }}</span>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -109,23 +112,23 @@
       </div>
 
       <!-- Already Voted Card - Show only if voted and not editing -->
-      <div v-if="hasVotedForCurrentCountry && !editingVote" class="w-full bg-blue-800 bg-opacity-80 backdrop-blur-md p-5 rounded-xl shadow-lg border-l-4 border-green-500 mb-6">
+      <div v-if="hasVotedForCurrentCountry && !editingVote" class="w-full bg-black/60 backdrop-blur-md p-6 rounded-xl shadow-2xl border-l-4 border-pink-500 mb-6">
         <div class="flex justify-between items-center mb-4">
           <div class="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-pink-400" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
-            <span class="text-yellow-400 text-base font-bold">Ta note :</span>
+            <span class="text-pink-300 text-base font-bold">Ta note :</span>
           </div>
-          <div class="bg-blue-700 px-3 py-1 rounded-full">
-            <span class="text-2xl font-bold text-yellow-400">{{ existingVoteValue }}</span>
-            <span class="text-blue-200">/12</span>
+          <div class="bg-gray-900/80 px-4 py-2 rounded-full">
+            <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">{{ existingVoteValue }}</span>
+            <span class="text-gray-400">/12</span>
           </div>
         </div>
         
         <button
           @click="editingVote = true"
-          class="bg-blue-600 text-white px-4 py-3 rounded-full font-bold hover:bg-blue-500 transition transform hover:scale-105 w-full shadow-lg flex items-center justify-center space-x-2 mt-4"
+          class="bg-gray-800 text-white px-4 py-3 rounded-lg font-bold hover:bg-gray-700 transition transform hover:scale-105 w-full shadow-lg flex items-center justify-center space-x-2 mt-4"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
@@ -136,7 +139,7 @@
 
       <!-- Real-time Votes Section -->
       <div ref="votesSection" class="w-full">
-        <h2 class="text-xl font-bold mb-3 text-yellow-400 flex items-center">
+        <h2 class="text-xl font-bold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-300 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
@@ -148,48 +151,48 @@
             v-for="(vote, index) in currentVotes" 
             :key="index" 
             :ref="el => { if (el) voteElements[index] = el }"
-            class="flex items-center justify-between p-3 bg-blue-800 bg-opacity-70 backdrop-blur-sm rounded-lg border-l-3 border-blue-600 hover:border-yellow-400 transition transform hover:scale-102"
-            :class="{'border-green-500 bg-blue-700': vote.user === userStore.pseudo}"
+            class="flex items-center justify-between p-3 bg-black/50 backdrop-blur-sm rounded-lg border-l-2 border-gray-700 hover:border-pink-500 transition transform hover:scale-102"
+            :class="{'border-pink-500 bg-gray-900/70': vote.user === userStore.pseudo}"
           >
             <div class="flex items-center space-x-2">
               <img 
                 v-if="vote.avatar" 
                 :src="vote.avatar" 
                 alt="Avatar" 
-                class="w-8 h-8 rounded-full object-cover border-2 border-yellow-400"
+                class="w-8 h-8 rounded-full object-cover border border-pink-500"
               />
               <div 
                 v-else 
-                class="w-8 h-8 rounded-full flex items-center justify-center text-blue-900 font-bold shadow-lg border-2 border-yellow-400" 
-                :style="{ backgroundColor: vote.color || '#FCD34D' }"
+                class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shadow-lg border border-pink-500" 
+                :style="{ backgroundColor: vote.color || '#EC4899' }"
               >
                 {{ vote.user.charAt(0).toUpperCase() }}
               </div>
               <span class="font-semibold text-sm">{{ vote.user }}</span>
-              <span v-if="vote.user === userStore.pseudo" class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Toi</span>
+              <span v-if="vote.user === userStore.pseudo" class="text-xs bg-pink-500 text-white px-2 py-0.5 rounded-full">Toi</span>
             </div>
-            <div class="bg-blue-900 bg-opacity-50 px-2 py-1 rounded-full">
-              <span class="text-base font-bold text-yellow-400">{{ vote.rawNote }}</span>
-              <span class="text-xs text-blue-200">/12</span>
+            <div class="bg-gray-900/80 px-2 py-1 rounded-full">
+              <span class="text-base font-bold text-pink-400">{{ vote.rawNote }}</span>
+              <span class="text-xs text-gray-400">/12</span>
             </div>
           </div>
           
           <!-- Empty State -->
-          <div v-if="currentVotes.length === 0" class="text-center p-4 bg-blue-800 bg-opacity-50 rounded-lg border border-blue-700">
-            <p class="text-blue-200 text-sm">Aucun vote pour ce pays pour le moment</p>
+          <div v-if="currentVotes.length === 0" class="text-center p-4 bg-black/40 rounded-lg border border-gray-800">
+            <p class="text-gray-400 text-sm">Aucun vote pour ce pays pour le moment</p>
           </div>
         </div>
         
         <!-- Progress Indicator -->
         <div class="mt-4 text-center">
-          <p class="text-blue-200 mb-1 text-sm">
+          <p class="text-gray-400 mb-1 text-sm">
             Progression: {{ votedCountriesCount }} / {{ countries.length }} pays
           </p>
-          <div class="w-full bg-blue-800 rounded-full h-2">
-            <div ref="progressBar" class="bg-yellow-400 h-2 rounded-full" :style="{width: `${votedCountriesCount / countries.length * 100}%`}"></div>
+          <div class="w-full bg-gray-800 rounded-full h-2">
+            <div ref="progressBar" class="bg-gradient-to-r from-pink-600 to-purple-600 h-2 rounded-full" :style="{width: `${votedCountriesCount / countries.length * 100}%`}"></div>
           </div>
-          <p class="text-blue-200 mt-2 text-sm">
-            <span class="font-semibold text-yellow-400">{{ currentVotes.length }}</span> / <span class="font-semibold text-yellow-400">{{ totalPlayers }}</span> joueurs ont voté pour ce pays
+          <p class="text-gray-400 mt-2 text-sm">
+            <span class="font-semibold text-pink-400">{{ currentVotes.length }}</span> / <span class="font-semibold text-pink-400">{{ totalPlayers }}</span> joueurs ont voté pour ce pays
           </p>
         </div>
       </div>
@@ -198,24 +201,24 @@
       <div class="w-full mt-6 flex justify-between items-center">
         <button 
           @click="goToPreviousCountry" 
-          class="bg-blue-700 text-white px-4 py-2 rounded-full font-medium hover:bg-blue-600 transition flex items-center space-x-1"
+          class="bg-black/60 text-white px-4 py-2 rounded-lg font-medium hover:bg-black/80 transition flex items-center space-x-1 border border-pink-500/30"
         >
-          <div v-if="previousCountry" class="w-6 h-6 mr-1 overflow-hidden rounded-full border border-blue-400">
+          <div v-if="previousCountry" class="w-6 h-6 mr-1 overflow-hidden rounded-full border border-pink-600">
             <CountryFlag :countryCode="previousCountryCode" :countryName="previousCountry" class="w-full h-auto" />
           </div>
           <span class="text-sm ml-2">Précédent</span>
         </button>
         
-        <div class="text-center text-sm text-blue-200">
+        <div class="text-center text-sm text-pink-300 bg-black/40 px-3 py-1 rounded-full">
           {{ currentIndex + 1 }} / {{ countries.length }}
         </div>
         
         <button 
           @click="goToNextCountry" 
-          class="bg-blue-700 text-white px-4 py-2 rounded-full font-medium hover:bg-blue-600 transition flex items-center space-x-1"
+          class="bg-black/60 text-white px-4 py-2 rounded-lg font-medium hover:bg-black/80 transition flex items-center space-x-1 border border-pink-500/30"
         >
           <span class="text-sm mr-2">Suivant</span>
-          <div v-if="nextCountry" class="w-6 h-6 ml-1 overflow-hidden rounded-full border border-blue-400">
+          <div v-if="nextCountry" class="w-6 h-6 ml-1 overflow-hidden rounded-full border border-pink-600">
             <CountryFlag :countryCode="nextCountryCode" :countryName="nextCountry" class="w-full h-auto" />
           </div>
         </button>
