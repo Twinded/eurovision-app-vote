@@ -29,9 +29,11 @@
         <div class="flex justify-between items-center mb-1">
           <p class="text-sm text-pink-300 font-medium">
             <span class="font-bold">{{ votedCountriesCount }}</span> / {{ countries.length }}
+            <span class="block text-xs">(pays votés)</span>
           </p>
-          <p class="text-sm text-pink-300">
+          <p class="text-sm text-right text-pink-300">
             <span class="font-bold">{{ currentIndex + 1 }}</span> / {{ countries.length }}
+            <span class="block text-xs">(pays actuel)</span>
           </p>
         </div>
         <div class="w-full bg-gray-800 rounded-full h-2">
