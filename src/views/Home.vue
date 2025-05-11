@@ -50,7 +50,7 @@
             <input 
               v-model="pseudo" 
               type="text" 
-              placeholder="Ton pseudo" 
+              placeholder="Ton prénom" 
               class="w-full bg-black/30 border border-purple-500/30 pl-10 pr-3 py-4 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition duration-300"
             />
           </div>
