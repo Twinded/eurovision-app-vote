@@ -15,6 +15,6 @@ const props = defineProps({
 });
 
 const flagUrl = computed(() => 
-  `https://flagcdn.com/w80/${props.countryCode.toLowerCase()}.png`
+  `https://flagcdn.com/w640/${props.countryCode.toLowerCase()}.webp`
 );
 </script>
