@@ -166,7 +166,7 @@
           class="bg-black/60 text-white px-3 py-2 rounded-lg font-medium hover:bg-black/80 transition flex items-center border border-pink-500/30"
         >
           <div v-if="previousCountry" class="w-5 h-5 mr-1 overflow-hidden rounded-full border border-pink-600">
-            <CountryFlag :countryCode="previousCountryCode" :countryName="previousCountry" class="w-full h-auto" />
+            <CountryFlag :countryCode="previousCountryCode" :countryName="previousCountry" class="w-full h-full object-cover" />
           </div>
           <span class="text-sm">Précédent</span>
         </button>
@@ -177,7 +177,7 @@
         >
           <span class="text-sm">Suivant</span>
           <div v-if="nextCountry" class="w-5 h-5 ml-1 overflow-hidden rounded-full border border-pink-600">
-            <CountryFlag :countryCode="nextCountryCode" :countryName="nextCountry" class="w-full h-auto" />
+            <CountryFlag :countryCode="nextCountryCode" :countryName="nextCountry" class="w-full h-full object-cover" />
           </div>
         </button>
       </div>
