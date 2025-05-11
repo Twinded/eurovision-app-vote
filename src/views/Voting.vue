@@ -163,7 +163,9 @@
       <div class="w-full mb-4 flex justify-between items-center">
         <button 
           @click="goToPreviousCountry" 
+          :disabled="currentIndex <= 0"
           class="bg-black/60 text-white px-3 py-2 rounded-lg font-medium hover:bg-black/80 transition flex items-center border border-pink-500/30"
+          :class="{'opacity-50 cursor-not-allowed': currentIndex <= 0}"
         >
           <div v-if="previousCountry" class="w-5 h-5 mr-1 overflow-hidden rounded-full border border-pink-600">
             <CountryFlag :countryCode="previousCountryCode" :countryName="previousCountry" class="w-full h-full object-cover" />
@@ -242,9 +244,10 @@ import { collection, addDoc, onSnapshot, query, where, getDocs, deleteDoc, doc, 
 import { useUserStore } from '@/store/user';
 import CountryFlag from '@/components/CountryFlag.vue';
 import { countries } from '@/data/countries';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 const loading = ref(true);
 const allVoted = ref(false);
 const currentIndex = ref(0);
@@ -321,6 +324,15 @@ onMounted(async () => {
     console.log("Mounting component...");
     await loadUserVotes();
     console.log("User votes loaded:", userVotes.value);
+    
+    // Check if country parameter exists in URL
+    if (route.query.country) {
+      const countryIndex = parseInt(route.query.country);
+      if (!isNaN(countryIndex) && countryIndex >= 0 && countryIndex < countries.length) {
+        currentIndex.value = countryIndex;
+        console.log("Setting country index from URL:", countryIndex);
+      }
+    }
     
     watchCurrentVotes();
     await getTotalPlayers();

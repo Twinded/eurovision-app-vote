@@ -40,6 +40,17 @@
           </div>
           <p class="text-xl mb-3 font-medium text-gray-100">Aucun vote pour le moment</p>
           <p class="text-pink-300 text-sm">Soyez le premier à voter pour {{ countryTitle }} !</p>
+          
+          <!-- Add vote button when no votes -->
+          <button 
+            @click="goToVoting" 
+            class="mt-6 bg-gradient-to-r from-pink-600 to-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:from-pink-500 hover:to-purple-500 transition transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 w-full"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+            </svg>
+            <span>Voter pour {{ countryTitle }}</span>
+          </button>
         </div>
 
         <!-- Votes exist state -->
@@ -81,6 +92,45 @@
               <div class="text-pink-400">Mis à jour en temps réel</div>
             </div>
           </div>
+          
+          <!-- User's vote and edit button -->
+          <div v-if="userVote" class="bg-black/60 backdrop-blur-md p-5 rounded-xl shadow-xl border-l-4 border-pink-500 mb-4">
+            <div class="flex justify-between items-center mb-3">
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-pink-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-pink-300 text-base font-bold">Ton vote</span>
+              </div>
+              <div class="bg-gray-900/80 px-4 py-2 rounded-full">
+                <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">{{ userVote.rawNote }}</span>
+                <span class="text-gray-400">/12</span>
+              </div>
+            </div>
+            
+            <button
+              @click="goToVoting"
+              class="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-pink-500 hover:to-purple-500 transition w-full shadow-lg flex items-center justify-center space-x-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
+              <span>Modifier mon vote</span>
+            </button>
+          </div>
+          
+          <!-- Add vote button if user hasn't voted -->
+          <div v-else-if="!userVote && userStore.isLoggedIn" class="mb-4">
+            <button
+              @click="goToVoting"
+              class="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-3 rounded-lg font-bold hover:from-pink-500 hover:to-purple-500 transition transform hover:scale-105 w-full shadow-lg flex items-center justify-center space-x-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+              </svg>
+              <span>Voter pour {{ countryTitle }}</span>
+            </button>
+          </div>
 
           <!-- Individual votes section -->
           <div class="mt-8">
@@ -100,7 +150,8 @@
                   vote.rawNote >= 10 ? 'border-pink-500' : 
                   vote.rawNote >= 8 ? 'border-purple-500' : 
                   vote.rawNote >= 6 ? 'border-pink-700' : 
-                  'border-purple-700'
+                  'border-purple-700',
+                  vote.user === userStore.pseudo ? 'bg-black/60' : ''
                 ]"
               >
                 <div class="flex items-center space-x-3">
@@ -121,18 +172,33 @@
                     </div>
                   </div>
                   <span class="font-medium text-sm">{{ vote.user }}</span>
+                  <span v-if="vote.user === userStore.pseudo" class="text-xs bg-pink-500 text-white px-2 py-0.5 rounded-full">Toi</span>
                 </div>
                 
-                <div 
-                  class="flex items-center justify-center min-w-[2.75rem] h-8 rounded-full font-bold text-sm"
-                  :class="[
-                    vote.rawNote >= 10 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 
-                    vote.rawNote >= 8 ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white' : 
-                    vote.rawNote >= 6 ? 'bg-gradient-to-r from-pink-700 to-purple-700 text-white' : 
-                    'bg-gradient-to-r from-purple-800 to-pink-900 text-white'
-                  ]"
-                >
-                  {{ vote.rawNote }}
+                <div class="flex items-center">
+                  <div 
+                    class="flex items-center justify-center min-w-[2.75rem] h-8 rounded-full font-bold text-sm"
+                    :class="[
+                      vote.rawNote >= 10 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 
+                      vote.rawNote >= 8 ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white' : 
+                      vote.rawNote >= 6 ? 'bg-gradient-to-r from-pink-700 to-purple-700 text-white' : 
+                      'bg-gradient-to-r from-purple-800 to-pink-900 text-white'
+                    ]"
+                  >
+                    {{ vote.rawNote }}
+                  </div>
+                  
+                  <!-- Edit button for user's own vote -->
+                  <button 
+                    v-if="vote.user === userStore.pseudo"
+                    @click="goToVoting"
+                    class="ml-2 p-2 rounded-full bg-gray-800/80 text-pink-300 hover:bg-pink-600/50 active:scale-95 transition-all duration-200"
+                    aria-label="Modifier mon vote"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -145,7 +211,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { db } from '@/firebase/config';
 import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { useUserStore } from '@/store/user';
@@ -153,6 +219,7 @@ import CountryFlag from '@/components/CountryFlag.vue';
 import { countries } from '@/data/countries';
 
 const route = useRoute();
+const router = useRouter();
 const countryName = route.params.country;
 const loading = ref(true);
 const countryVotes = ref([]);
@@ -171,6 +238,26 @@ const averageNote = computed(() => {
   if (countryVotes.value.length === 0) return 0;
   return countryVotes.value.reduce((sum, vote) => sum + Number(vote.rawNote), 0) / countryVotes.value.length;
 });
+
+// Get the current user's vote for this country
+const userVote = computed(() => {
+  if (!userStore.isLoggedIn) return null;
+  return countryVotes.value.find(vote => vote.user === userStore.pseudo);
+});
+
+// Function to navigate to voting page for this country
+const goToVoting = () => {
+  // Find the index of the country in the countries array
+  const countryIndex = countries.findIndex(c => c.name === countryName);
+  if (countryIndex !== -1) {
+    router.push({ 
+      path: '/vote',
+      query: { country: countryIndex }
+    });
+  } else {
+    router.push('/vote');
+  }
+};
 
 onMounted(async () => {
   // Get total number of users
