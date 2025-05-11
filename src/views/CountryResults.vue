@@ -68,7 +68,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                {{ countryVotes.length }} vote{{ countryVotes.length > 1 ? 's' : '' }}
+                {{ countryVotes.length }} / {{ totalUsers }} vote{{ countryVotes.length > 1 ? 's' : '' }}
               </div>
               <div class="text-xs text-pink-200">Mis à jour en temps réel</div>
             </div>
@@ -131,20 +131,33 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { db } from '@/firebase/config';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
+import { useUserStore } from '@/store/user';
 
 const route = useRoute();
 const router = useRouter();
 const countryName = route.params.country;
 const loading = ref(true);
 const countryVotes = ref([]);
+const userStore = useUserStore();
+const totalUsers = ref(0);
 
 const averageNote = computed(() => {
   if (countryVotes.value.length === 0) return 0;
   return countryVotes.value.reduce((sum, vote) => sum + Number(vote.rawNote), 0) / countryVotes.value.length;
 });
 
-onMounted(() => {
+onMounted(async () => {
+  // Get total number of users
+  totalUsers.value = userStore.totalUsers;
+  
+  // If totalUsers is not available in the store, fetch it from Firestore
+  if (!totalUsers.value) {
+    const usersRef = collection(db, 'users');
+    const usersSnapshot = await getDocs(usersRef);
+    totalUsers.value = usersSnapshot.size;
+  }
+  
   const votesRef = collection(db, 'votes');
   const votesQuery = query(votesRef, where('country', '==', countryName));
 

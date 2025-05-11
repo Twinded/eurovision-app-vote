@@ -188,6 +188,9 @@
           <div class="w-full bg-blue-800 rounded-full h-2">
             <div ref="progressBar" class="bg-yellow-400 h-2 rounded-full" :style="{width: `${votedCountriesCount / countries.length * 100}%`}"></div>
           </div>
+          <p class="text-blue-200 mt-2 text-sm">
+            <span class="font-semibold text-yellow-400">{{ currentVotes.length }}</span> / <span class="font-semibold text-yellow-400">{{ totalPlayers }}</span> joueurs ont voté pour ce pays
+          </p>
         </div>
       </div>
 
@@ -239,6 +242,7 @@ const dontCare = ref(false);
 const userVotes = ref([]);
 const voteElements = ref([]);
 const editingVote = ref(false);
+const totalPlayers = ref(0);
 
 // Refs for UI elements
 const flagContainer = ref(null);
@@ -303,6 +307,7 @@ onMounted(async () => {
     console.log("User votes loaded:", userVotes.value);
     
     watchCurrentVotes();
+    await getTotalPlayers();
     
     loading.value = false;
     
@@ -324,6 +329,18 @@ watch(currentIndex, () => {
   loadExistingVote();
   editingVote.value = false; // Reset editing mode when changing country
 });
+
+async function getTotalPlayers() {
+  try {
+    const usersRef = collection(db, 'users');
+    const snapshot = await getDocs(usersRef);
+    totalPlayers.value = snapshot.size;
+    console.log("Total players:", totalPlayers.value);
+  } catch (error) {
+    console.error("Error getting total players:", error);
+    totalPlayers.value = 0;
+  }
+}
 
 function loadExistingVote() {
   // Vérifier si l'utilisateur a déjà voté pour ce pays

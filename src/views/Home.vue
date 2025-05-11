@@ -112,7 +112,7 @@
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/store/user';
 import { useRouter } from 'vue-router';
-import { collection, addDoc, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 // Eurovision-themed colors
@@ -120,25 +120,67 @@ const eurovisionColors = ['#FF1958', '#00C7FF', '#FFD700', '#9B59B6', '#3498DB',
 
 const pseudo = ref('');
 const avatar = ref('');
-const color = ref(localStorage.getItem('color') || getRandomColor());
+const color = ref(getRandomColor());
 const userStore = useUserStore();
 const router = useRouter();
 const errorMessage = ref('');
+const deviceId = ref('');
 
 // Constants for image validation
 const MAX_IMAGE_SIZE = 800 * 1024; // 800KB max size for Firestore
 const MAX_IMAGE_DIMENSION = 500; // Max width/height in pixels
 
-onMounted(() => {
-  // Pré-remplir depuis localStorage si dispo
-  pseudo.value = localStorage.getItem('pseudo') || '';
-  avatar.value = localStorage.getItem('avatar') || '';
+onMounted(async () => {
+  // Générer ou récupérer un ID unique pour ce device
+  deviceId.value = await getOrCreateDeviceId();
   
-  // If stored color is not in our options, select a random one from our palette
-  if (!eurovisionColors.includes(color.value)) {
-    color.value = getRandomColor();
-  }
+  // Récupérer les informations utilisateur basées sur le deviceId
+  await fetchUserByDevice();
 });
+
+// Générer un ID unique pour le device ou récupérer celui existant
+async function getOrCreateDeviceId() {
+  // Utiliser une combinaison d'informations du navigateur pour créer un ID unique
+  const userAgent = navigator.userAgent;
+  const screenWidth = window.screen.width;
+  const screenHeight = window.screen.height;
+  const colorDepth = window.screen.colorDepth;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
+  // Créer une empreinte unique basée sur ces informations
+  const deviceFingerprint = `${userAgent}-${screenWidth}x${screenHeight}-${colorDepth}-${timezone}`;
+  
+  // Créer un hash simple de cette empreinte
+  let hash = 0;
+  for (let i = 0; i < deviceFingerprint.length; i++) {
+    const char = deviceFingerprint.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convertir en entier 32 bits
+  }
+  
+  return `device_${Math.abs(hash).toString(16)}`;
+}
+
+// Récupérer les informations utilisateur basées sur le deviceId
+async function fetchUserByDevice() {
+  try {
+    const usersRef = collection(db, 'users');
+    const deviceQuery = query(usersRef, where('deviceId', '==', deviceId.value));
+    const snapshot = await getDocs(deviceQuery);
+    
+    if (!snapshot.empty) {
+      const userData = snapshot.docs[0].data();
+      pseudo.value = userData.pseudo || '';
+      avatar.value = userData.avatar || '';
+      color.value = userData.color || getRandomColor();
+      
+      // Mettre à jour le store utilisateur
+      userStore.setUser(pseudo.value, avatar.value, color.value);
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération des données utilisateur:", error);
+  }
+}
 
 function getRandomColor() {
   return eurovisionColors[Math.floor(Math.random() * eurovisionColors.length)];
@@ -232,30 +274,37 @@ async function saveProfile() {
     const usersRef = collection(db, 'users');
     const existingUserQuery = query(usersRef, where('pseudoLower', '==', normalizedPseudo));
     const existingSnapshot = await getDocs(existingUserQuery);
+    
+    // Vérifier si le device existe déjà
+    const deviceQuery = query(usersRef, where('deviceId', '==', deviceId.value));
+    const deviceSnapshot = await getDocs(deviceQuery);
 
-    if (existingSnapshot.empty) {
+    if (!deviceSnapshot.empty) {
+      // Mise à jour de l'utilisateur existant pour ce device
+      await updateDoc(deviceSnapshot.docs[0].ref, {
+        pseudo: pseudo.value,
+        pseudoLower: normalizedPseudo,
+        avatar: finalAvatar,
+        color: finalColor,
+        updatedAt: new Date(),
+      });
+    } else if (existingSnapshot.empty) {
       // Création d'un nouvel utilisateur
       await addDoc(usersRef, {
         pseudo: pseudo.value,
-        pseudoLower: normalizedPseudo, // Pour éviter les doublons insensibles à la casse
+        pseudoLower: normalizedPseudo,
         avatar: finalAvatar,
         color: finalColor,
+        deviceId: deviceId.value,
         createdAt: new Date(),
       });
     } else {
-      // Mise à jour de l'utilisateur existant
-      const docId = existingSnapshot.docs[0].id;
-      await updateDoc(existingSnapshot.docs[0].ref, {
-        avatar: finalAvatar,
-        color: finalColor,
-      });
+      // Un utilisateur avec ce pseudo existe mais pas sur ce device
+      errorMessage.value = "Ce pseudo est déjà utilisé. Veuillez en choisir un autre.";
+      return;
     }
 
     userStore.setUser(pseudo.value, finalAvatar, finalColor);
-    localStorage.setItem('pseudo', pseudo.value);
-    localStorage.setItem('avatar', finalAvatar);
-    localStorage.setItem('color', finalColor);
-
     router.push('/vote');
   } catch (error) {
     console.error("Erreur lors de l'enregistrement:", error);
