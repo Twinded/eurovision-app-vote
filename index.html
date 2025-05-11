@@ -1,14 +1,45 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/src/assets/logo.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#9333ea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Eurovision Vote App</title>
+    <link rel="apple-touch-icon" href="/src/assets/logo.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Eurovision Vote 2025</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Montserrat', sans-serif;
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+      #app {
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+      }
+      @media (max-width: 768px) {
+        html {
+          height: -webkit-fill-available;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+    <noscript>
+      <div style="padding: 2rem; text-align: center;">
+        Cette application nécessite JavaScript pour fonctionner.
+      </div>
+    </noscript>
   </body>
 </html>
