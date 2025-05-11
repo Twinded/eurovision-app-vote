@@ -79,7 +79,7 @@
                       index === 1 ? 'text-gray-300' : 
                       'text-amber-500'
                     ]">
-                    {{ player.avgNote.toFixed(1) }}
+                    {{ player.avgNote ? player.avgNote.toFixed(1) : '0.0' }}
                   </span>
                   <span class="text-xs text-gray-300 ml-1">/12</span>
                 </div>
@@ -132,7 +132,7 @@
                     player.avgNote >= 6 ? 'text-pink-600' : 
                     'text-pink-700'
                   ]">
-                  {{ player.avgNote.toFixed(1) }}
+                  {{ player.avgNote ? player.avgNote.toFixed(1) : '0.0' }}
                 </span>
                 <span class="text-xs text-pink-300/70 ml-1">/12</span>
               </div>
@@ -147,12 +147,23 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { db } from '@/firebase/config';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs } from 'firebase/firestore';
 
 const loading = ref(true);
 const votes = ref([]);
+const allUsers = ref([]);
 
-onMounted(() => {
+onMounted(async () => {
+  // Récupérer tous les utilisateurs inscrits
+  const usersRef = collection(db, 'users');
+  const usersSnapshot = await getDocs(usersRef);
+  allUsers.value = usersSnapshot.docs.map(doc => ({
+    user: doc.data().pseudo,
+    avatar: doc.data().avatar || '',
+    color: doc.data().color || ''
+  }));
+  
+  // Récupérer tous les votes
   const votesRef = collection(db, 'votes');
   onSnapshot(votesRef, (snapshot) => {
     votes.value = snapshot.docs.map(doc => doc.data());
@@ -202,6 +213,16 @@ const funTitlesByCategory = {
     "L'Avare de Points", 
     "Le Radin", 
     "Le Plus Sévère"
+  ],
+  // N'a pas encore voté
+  noVotes: [
+    "Le Spectateur", 
+    "L'Observateur", 
+    "L'Indécis", 
+    "Le Mystérieux", 
+    "Le Réservé", 
+    "Le Contemplatif", 
+    "L'Attentiste"
   ]
 };
 
@@ -209,9 +230,11 @@ const getFunTitle = (index, player) => {
   if (!player) return "Participant";
   
   let category;
-  const avgNote = player.avgNote;
+  const avgNote = player.avgNote || 0;
   
-  if (avgNote >= 10) {
+  if (!player.hasVoted) {
+    category = 'noVotes';
+  } else if (avgNote >= 10) {
     category = 'high';
   } else if (avgNote >= 8) {
     category = 'medium';
@@ -223,7 +246,9 @@ const getFunTitle = (index, player) => {
   
   // Trouver l'index relatif dans la catégorie
   const categoryPlayers = sortedPlayers.value.filter(p => {
-    const note = p.avgNote;
+    if (category === 'noVotes') return !p.hasVoted;
+    
+    const note = p.avgNote || 0;
     return (category === 'high' && note >= 10) ||
            (category === 'medium' && note >= 8 && note < 10) ||
            (category === 'low' && note >= 6 && note < 8) ||
@@ -242,9 +267,29 @@ const getFunTitle = (index, player) => {
 const sortedPlayers = computed(() => {
   const grouped = {};
 
+  // Initialiser tous les utilisateurs inscrits
+  allUsers.value.forEach(user => {
+    grouped[user.user] = { 
+      total: 0, 
+      count: 0, 
+      avatar: user.avatar || '', 
+      color: user.color || '',
+      hasVoted: false
+    };
+  });
+
+  // Ajouter les votes
   votes.value.forEach(vote => {
     if (!grouped[vote.user]) {
-      grouped[vote.user] = { total: 0, count: 0, avatar: vote.avatar || '', color: vote.color || '' };
+      grouped[vote.user] = { 
+        total: 0, 
+        count: 0, 
+        avatar: vote.avatar || '', 
+        color: vote.color || '',
+        hasVoted: true
+      };
+    } else {
+      grouped[vote.user].hasVoted = true;
     }
     grouped[vote.user].total += Number(vote.rawNote);
     grouped[vote.user].count++;
@@ -252,9 +297,16 @@ const sortedPlayers = computed(() => {
 
   return Object.entries(grouped).map(([user, data]) => ({
     user,
-    avgNote: data.total / data.count,
+    avgNote: data.count > 0 ? data.total / data.count : 0,
     avatar: data.avatar || '',
-    color: data.color
-  })).sort((a, b) => b.avgNote - a.avgNote);
+    color: data.color,
+    hasVoted: data.hasVoted
+  })).sort((a, b) => {
+    // Trier d'abord par ceux qui ont voté
+    if (a.hasVoted && !b.hasVoted) return -1;
+    if (!a.hasVoted && b.hasVoted) return 1;
+    // Puis par moyenne
+    return b.avgNote - a.avgNote;
+  });
 });
 </script>
