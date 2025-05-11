@@ -24,7 +24,7 @@
         <h2 class="text-lg font-medium text-pink-200 mb-2">Podium</h2>
         
         <!-- Top 3 Players -->
-        <div v-for="(player, index) in sortedPlayers.slice(0, 3)" :key="player.user" 
+        <div v-for="(player, index) in podiumPlayers.slice(0, 3)" :key="player.user" 
           class="relative overflow-hidden rounded-xl shadow-lg transform transition-all duration-300 hover:scale-102 active:scale-98"
           :class="[
             index === 0 ? 'bg-gradient-to-r from-yellow-600/30 to-amber-700/30 border border-yellow-500/50' : 
@@ -93,11 +93,11 @@
           <h2 class="text-lg font-medium text-pink-200 mb-2">Autres joueurs</h2>
           
           <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-pink-800/30">
-            <div v-for="(player, index) in sortedPlayers.slice(3)" :key="player.user" 
+            <div v-for="(player, index) in otherPlayers" :key="player.user" 
               class="flex items-center p-3 border-b border-pink-900/30 last:border-b-0 hover:bg-pink-900/10 transition-colors duration-200">
               <!-- Rank -->
               <div class="w-7 h-7 rounded-full bg-gradient-to-br from-pink-800 to-purple-900 flex items-center justify-center mr-3 text-sm font-medium text-pink-100 shadow">
-                {{ index + 4 }}
+                {{ player.hasVoted ? podiumPlayers.length + index + 1 : '?' }}
               </div>
               
               <!-- Avatar -->
@@ -120,7 +120,7 @@
               <!-- Player Info -->
               <div class="flex-1 truncate">
                 <p class="font-medium truncate text-sm">{{ player.user }}</p>
-                <div class="text-xs text-pink-300/80">{{ getFunTitle(index + 3, player) }}</div>
+                <div class="text-xs text-pink-300/80">{{ getFunTitle(index + podiumPlayers.length, player) }}</div>
               </div>
               
               <!-- Score -->
@@ -308,5 +308,16 @@ const sortedPlayers = computed(() => {
     // Puis par moyenne
     return b.avgNote - a.avgNote;
   });
+});
+
+// Séparer les joueurs qui ont voté pour le podium et les autres joueurs
+const podiumPlayers = computed(() => {
+  return sortedPlayers.value.filter(player => player.hasVoted).slice(0, 3);
+});
+
+const otherPlayers = computed(() => {
+  const votedPlayers = sortedPlayers.value.filter(player => player.hasVoted).slice(3);
+  const nonVotedPlayers = sortedPlayers.value.filter(player => !player.hasVoted);
+  return [...votedPlayers, ...nonVotedPlayers];
 });
 </script>
