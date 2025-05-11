@@ -15,20 +15,37 @@
           Ton Profil Eurovision
         </h2>
         
-        <!-- Avatar Preview -->
+        <!-- Avatar Preview with Upload Functionality -->
         <div class="flex justify-center mb-6">
-          <div class="relative group">
+          <div class="relative group cursor-pointer">
             <div class="absolute -inset-1 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 opacity-75 blur group-hover:opacity-100 transition duration-300 animate-pulse"></div>
             <div v-if="avatar" class="relative w-24 h-24 rounded-full overflow-hidden border-2 border-purple-500/50 shadow-lg">
               <img :src="avatar" alt="Avatar" class="w-full h-full object-cover" />
+              <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
             </div>
             <div 
               v-else 
               class="relative w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold border-2 border-purple-500/50 shadow-lg"
               :style="{ backgroundColor: color }"
             >
-              {{ pseudo.charAt(0).toUpperCase() || '?' }}
+              <span>{{ pseudo.charAt(0).toUpperCase() || '?' }}</span>
+              <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
             </div>
+            <input 
+              type="file" 
+              @change="handleAvatar" 
+              accept="image/*" 
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
           </div>
         </div>
         
@@ -78,26 +95,10 @@
             </div>
           </div>
           
-          <!-- Avatar Upload -->
-          <div>
-            <label class="text-sm text-purple-300 mb-1 block font-medium">Photo de profil</label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <button class="w-full bg-black/30 border border-purple-500/30 pl-10 pr-3 py-3 rounded-xl text-left text-gray-300 hover:bg-purple-900/30 transition-colors duration-300">
-                Choisir une photo
-              </button>
-              <input 
-                type="file" 
-                @change="handleAvatar" 
-                accept="image/*" 
-                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-            </div>
-            <p class="text-xs text-gray-400 mt-1">Optionnel - Max 800KB</p>
+          <!-- Photo de profil info text -->
+          <div class="text-xs text-gray-400">
+            <p>Photo de profil - Optionnel - Max 800KB</p>
+            <p>Cliquez sur l'avatar ci-dessus pour changer votre photo</p>
           </div>
         </div>
       </div>
@@ -206,7 +207,7 @@ function getRandomColor() {
   return eurovisionColors[Math.floor(Math.random() * eurovisionColors.length)];
 }
 
-function handleAvatar(event) {
+async function handleAvatar(event) {
   const file = event.target.files[0];
   if (!file) return;
   
@@ -217,13 +218,38 @@ function handleAvatar(event) {
   }
 
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     const img = new Image();
-    img.onload = () => {
+    img.onload = async () => {
       // Resize image if needed
       const resizedImage = resizeImage(img);
-      avatar.value = resizedImage;
-      errorMessage.value = '';
+      if (resizedImage) {
+        avatar.value = resizedImage;
+        errorMessage.value = '';
+        
+        // Enregistrer automatiquement la photo
+        if (pseudo.value.trim() !== '') {
+          try {
+            const usersRef = collection(db, 'users');
+            const deviceQuery = query(usersRef, where('deviceId', '==', deviceId.value));
+            const deviceSnapshot = await getDocs(deviceQuery);
+            
+            if (!deviceSnapshot.empty) {
+              // Mise à jour de l'avatar pour l'utilisateur existant
+              await updateDoc(deviceSnapshot.docs[0].ref, {
+                avatar: resizedImage,
+                updatedAt: new Date(),
+              });
+              
+              // Mettre à jour le store utilisateur
+              userStore.setUser(pseudo.value, resizedImage, color.value);
+            }
+          } catch (error) {
+            console.error("Erreur lors de l'enregistrement de l'avatar:", error);
+            errorMessage.value = "Une erreur est survenue lors de l'enregistrement de la photo.";
+          }
+        }
+      }
     };
     img.onerror = () => {
       errorMessage.value = "Format d'image non supporté";
