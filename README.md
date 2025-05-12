@@ -24,6 +24,35 @@ Perfect for sharing the Eurovision experience with friends and tracking live vot
 
 ---
 
+## 📸 Screenshots
+
+### 🏠 Home
+<p align="center">
+  <img src="docs/screenshots/home.jpeg" alt="Home Page" width="400"/>
+</p>
+
+### 🎤 Voting Interface
+<p align="center">
+  <img src="docs/screenshots/voting.jpeg" alt="Voting Interface" width="400"/>
+</p>
+
+### 👥 Players Interface
+<p align="center">
+  <img src="docs/screenshots/players.jpeg" alt="Players Interface" width="400"/>
+</p>
+
+### 🏆 Results Overview
+<p align="center">
+  <img src="docs/screenshots/results.jpeg" alt="Results View" width="400"/>
+</p>
+
+### 🌍 Results Country
+<p align="center">
+  <img src="docs/screenshots/country.jpeg" alt="Country Results View" width="400"/>
+</p>
+
+---
+
 ## 📦 Project Structure
 
 ```
