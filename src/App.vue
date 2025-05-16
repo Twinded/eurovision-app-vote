@@ -1,7 +1,8 @@
 <template>
-  <SpeedInsights />
-  <router-view></router-view>
-  <BottomNav />
+  <SpeedInsights>
+    <router-view></router-view>
+    <BottomNav />
+  </SpeedInsights>
 </template>
 
 <script setup>
