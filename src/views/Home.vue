@@ -206,31 +206,14 @@ onMounted(async () => {
 
 // Générer un ID unique pour le device
 async function generateDeviceId() {
-  // Utiliser une combinaison d'informations du navigateur pour créer un ID unique
-  const userAgent = navigator.userAgent;
-  const screenWidth = window.screen.width;
-  const screenHeight = window.screen.height;
-  const colorDepth = window.screen.colorDepth;
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const languages = navigator.languages.join(',');
-  const platform = navigator.platform;
-  
-  // Créer une empreinte unique basée sur ces informations
-  const deviceFingerprint = `${userAgent}-${screenWidth}x${screenHeight}-${colorDepth}-${timezone}-${languages}-${platform}-${Date.now()}`;
-  
-  // Créer un hash plus robuste de cette empreinte
-  let hash = 0;
-  for (let i = 0; i < deviceFingerprint.length; i++) {
-    const char = deviceFingerprint.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  
-  // Ajouter un timestamp pour encore plus d'unicité
-  const timestamp = new Date().getTime();
-  const finalHash = `${Math.abs(hash).toString(16)}_${timestamp}`;
-  
-  return finalHash;
+  // Vérifie si un deviceId est déjà stocké
+  let storedId = localStorage.getItem('deviceId');
+  if (storedId) return storedId;
+
+  // Sinon, génère un nouvel ID unique (UUID est plus propre et universel)
+  const newId = crypto.randomUUID();
+  localStorage.setItem('deviceId', newId);
+  return newId;
 }
 
 function getRandomColor() {
