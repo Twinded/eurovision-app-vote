@@ -45,14 +45,27 @@ export const useUserStore = defineStore('user', {
       
       try {
         const usersRef = collection(db, 'users');
+        
+        // Vérifier si le pseudo existe déjà
+        const pseudoQuery = query(usersRef, where('pseudoLower', '==', this.pseudo.trim().toLowerCase()));
+        const pseudoSnapshot = await getDocs(pseudoQuery);
+        
+        if (!pseudoSnapshot.empty) {
+          // Si le pseudo existe déjà et appartient à un autre device
+          const existingUser = pseudoSnapshot.docs[0];
+          if (existingUser.data().deviceId !== deviceId) {
+            throw new Error('Ce pseudo est déjà utilisé');
+          }
+        }
+        
         const deviceQuery = query(usersRef, where('deviceId', '==', deviceId));
-        const snapshot = await getDocs(deviceQuery);
+        const deviceSnapshot = await getDocs(deviceQuery);
         
         const normalizedPseudo = this.pseudo.trim().toLowerCase();
         
-        if (!snapshot.empty) {
+        if (!deviceSnapshot.empty) {
           // Update existing user
-          await updateDoc(snapshot.docs[0].ref, {
+          await updateDoc(deviceSnapshot.docs[0].ref, {
             pseudo: this.pseudo,
             pseudoLower: normalizedPseudo,
             avatar: this.avatar,

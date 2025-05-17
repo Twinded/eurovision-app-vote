@@ -167,7 +167,7 @@
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/store/user';
 import { useRouter } from 'vue-router';
-import { collection, addDoc, query, where, getDocs, updateDoc, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 // Eurovision-themed colors
@@ -189,59 +189,48 @@ const MAX_IMAGE_SIZE = 800 * 1024; // 800KB max size for Firestore
 const MAX_IMAGE_DIMENSION = 500; // Max width/height in pixels
 
 onMounted(async () => {
-  // Générer ou récupérer un ID unique pour ce device
-  deviceId.value = await getOrCreateDeviceId();
+  // Générer un ID unique pour ce device
+  deviceId.value = await generateDeviceId();
   
-  // Récupérer les informations utilisateur basées sur le deviceId
-  await fetchUserByDevice();
+  // Charger l'utilisateur avec le userStore
+  const userLoaded = await userStore.loadUserByDevice(deviceId.value);
+  
+  if (userLoaded) {
+    // Si l'utilisateur existe, on met à jour les refs locales
+    pseudo.value = userStore.pseudo;
+    avatar.value = userStore.avatar;
+    color.value = userStore.color;
+    userExists.value = true;
+  }
 });
 
-// Générer un ID unique pour le device ou récupérer celui existant
-async function getOrCreateDeviceId() {
+// Générer un ID unique pour le device
+async function generateDeviceId() {
   // Utiliser une combinaison d'informations du navigateur pour créer un ID unique
   const userAgent = navigator.userAgent;
   const screenWidth = window.screen.width;
   const screenHeight = window.screen.height;
   const colorDepth = window.screen.colorDepth;
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const languages = navigator.languages.join(',');
+  const platform = navigator.platform;
   
   // Créer une empreinte unique basée sur ces informations
-  const deviceFingerprint = `${userAgent}-${screenWidth}x${screenHeight}-${colorDepth}-${timezone}`;
+  const deviceFingerprint = `${userAgent}-${screenWidth}x${screenHeight}-${colorDepth}-${timezone}-${languages}-${platform}-${Date.now()}`;
   
-  // Créer un hash simple de cette empreinte
+  // Créer un hash plus robuste de cette empreinte
   let hash = 0;
   for (let i = 0; i < deviceFingerprint.length; i++) {
     const char = deviceFingerprint.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convertir en entier 32 bits
+    hash = hash & hash;
   }
   
-  return `device_${Math.abs(hash).toString(16)}`;
-}
-
-// Récupérer les informations utilisateur basées sur le deviceId
-async function fetchUserByDevice() {
-  try {
-    const usersRef = collection(db, 'users');
-    const deviceQuery = query(usersRef, where('deviceId', '==', deviceId.value));
-    const snapshot = await getDocs(deviceQuery);
-    
-    if (!snapshot.empty) {
-      userExists.value = true;
-      userDocRef.value = snapshot.docs[0].ref;
-      const userData = snapshot.docs[0].data();
-      pseudo.value = userData.pseudo || '';
-      avatar.value = userData.avatar || '';
-      color.value = userData.color || getRandomColor();
-      
-      // Mettre à jour le store utilisateur
-      userStore.setUser(pseudo.value, avatar.value, color.value);
-    } else {
-      userExists.value = false;
-    }
-  } catch (error) {
-    console.error("Erreur lors de la récupération des données utilisateur:", error);
-  }
+  // Ajouter un timestamp pour encore plus d'unicité
+  const timestamp = new Date().getTime();
+  const finalHash = `${Math.abs(hash).toString(16)}_${timestamp}`;
+  
+  return finalHash;
 }
 
 function getRandomColor() {
@@ -268,27 +257,9 @@ async function handleAvatar(event) {
         avatar.value = resizedImage;
         errorMessage.value = '';
         
-        // Enregistrer automatiquement la photo
-        if (pseudo.value.trim() !== '') {
-          try {
-            const usersRef = collection(db, 'users');
-            const deviceQuery = query(usersRef, where('deviceId', '==', deviceId.value));
-            const deviceSnapshot = await getDocs(deviceQuery);
-            
-            if (!deviceSnapshot.empty) {
-              // Mise à jour de l'avatar pour l'utilisateur existant
-              await updateDoc(deviceSnapshot.docs[0].ref, {
-                avatar: resizedImage,
-                updatedAt: new Date(),
-              });
-              
-              // Mettre à jour le store utilisateur
-              userStore.setUser(pseudo.value, resizedImage, color.value);
-            }
-          } catch (error) {
-            console.error("Erreur lors de l'enregistrement de l'avatar:", error);
-            errorMessage.value = "Une erreur est survenue lors de l'enregistrement de la photo.";
-          }
+        // Enregistrer automatiquement la photo si l'utilisateur existe
+        if (userExists.value) {
+          await userStore.saveUserToDevice(deviceId.value);
         }
       }
     };
@@ -355,55 +326,15 @@ async function saveProfile() {
 
   const finalColor = color.value;
   const finalAvatar = avatar.value || generateDefaultAvatar(pseudo.value, finalColor);
-  const normalizedPseudo = pseudo.value.trim().toLowerCase();
 
-  try {
-    const usersRef = collection(db, 'users');
-    const existingUserQuery = query(usersRef, where('pseudoLower', '==', normalizedPseudo));
-    const existingSnapshot = await getDocs(existingUserQuery);
-    
-    // Vérifier si le device existe déjà
-    const deviceQuery = query(usersRef, where('deviceId', '==', deviceId.value));
-    const deviceSnapshot = await getDocs(deviceQuery);
+  userStore.setUser(pseudo.value, finalAvatar, finalColor);
+  const saved = await userStore.saveUserToDevice(deviceId.value);
 
-    if (!deviceSnapshot.empty) {
-      // Mise à jour de l'utilisateur existant pour ce device
-      await updateDoc(deviceSnapshot.docs[0].ref, {
-        pseudo: pseudo.value,
-        pseudoLower: normalizedPseudo,
-        avatar: finalAvatar,
-        color: finalColor,
-        updatedAt: new Date(),
-      });
-      userExists.value = true;
-      userDocRef.value = deviceSnapshot.docs[0].ref;
-    } else if (existingSnapshot.empty) {
-      // Création d'un nouvel utilisateur
-      const docRef = await addDoc(usersRef, {
-        pseudo: pseudo.value,
-        pseudoLower: normalizedPseudo,
-        avatar: finalAvatar,
-        color: finalColor,
-        deviceId: deviceId.value,
-        createdAt: new Date(),
-      });
-      userExists.value = true;
-      userDocRef.value = docRef;
-    } else {
-      // Un utilisateur avec ce pseudo existe mais pas sur ce device
-      errorMessage.value = "Ce pseudo est déjà utilisé. Veuillez en choisir un autre.";
-      return;
-    }
-
-    userStore.setUser(pseudo.value, finalAvatar, finalColor);
+  if (saved) {
+    userExists.value = true;
     router.push('/vote');
-  } catch (error) {
-    console.error("Erreur lors de l'enregistrement:", error);
-    if (error.message.includes("property \"avatar\" is longer than")) {
-      errorMessage.value = "L'image est trop volumineuse. Veuillez choisir une image plus petite.";
-    } else {
-      errorMessage.value = "Une erreur est survenue. Veuillez réessayer.";
-    }
+  } else {
+    errorMessage.value = "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.";
   }
 }
 
@@ -413,39 +344,17 @@ function confirmDeleteProfile() {
 
 async function deleteProfile() {
   try {
-    if (userDocRef.value) {
-      // Supprimer le document utilisateur
-      await deleteDoc(userDocRef.value);
-      
-      // Supprimer les votes associés à cet utilisateur (si nécessaire)
-      const votesRef = collection(db, 'votes');
-      const userVotesQuery = query(votesRef, where('deviceId', '==', deviceId.value));
-      const votesSnapshot = await getDocs(userVotesQuery);
-      
-      const deletePromises = votesSnapshot.docs.map(doc => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
-      
-      // Réinitialiser les valeurs
-      pseudo.value = '';
-      avatar.value = '';
-      color.value = getRandomColor();
-      userExists.value = false;
-      userDocRef.value = null;
-      
-      // Réinitialiser le store
-      userStore.clearUser();
-      
-      // Fermer le modal
-      showDeleteModal.value = false;
-      
-      // Afficher un message de confirmation
-      errorMessage.value = "Ton profil a été supprimé avec succès.";
-      
-      // Attendre un peu avant de faire disparaître le message
-      setTimeout(() => {
-        errorMessage.value = '';
-      }, 3000);
-    }
+    userStore.clearUser();
+    userExists.value = false;
+    showDeleteModal.value = false;
+    pseudo.value = '';
+    avatar.value = '';
+    color.value = getRandomColor();
+    errorMessage.value = "Ton profil a été supprimé avec succès.";
+    
+    setTimeout(() => {
+      errorMessage.value = '';
+    }, 3000);
   } catch (error) {
     console.error("Erreur lors de la suppression du profil:", error);
     errorMessage.value = "Une erreur est survenue lors de la suppression du profil.";
