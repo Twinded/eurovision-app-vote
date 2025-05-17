@@ -167,8 +167,6 @@
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/store/user';
 import { useRouter } from 'vue-router';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase/config';
 
 // Eurovision-themed colors
 const eurovisionColors = ['#FF1958', '#00C7FF', '#FFD700', '#9B59B6', '#3498DB', '#E74C3C'];
