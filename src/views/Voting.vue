@@ -327,8 +327,15 @@ onMounted(async () => {
     await loadUserVotes();
     console.log("User votes loaded:", userVotes.value);
     
-    // Check if country parameter exists in URL
-    if (route.query.country) {
+    // Find first unvoted country
+    const unvotedCountryIndex = countries.findIndex(country => 
+      !userVotes.value.some(vote => vote.country === country.name)
+    );
+    
+    if (unvotedCountryIndex !== -1) {
+      currentIndex.value = unvotedCountryIndex;
+      console.log("Setting index to first unvoted country:", unvotedCountryIndex);
+    } else if (route.query.country) {
       const countryIndex = parseInt(route.query.country);
       if (!isNaN(countryIndex) && countryIndex >= 0 && countryIndex < countries.length) {
         currentIndex.value = countryIndex;
