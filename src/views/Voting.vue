@@ -489,11 +489,6 @@ async function submitVote() {
     // Vérifier s'il reste des pays à voter
     if (userVotes.value.length === countries.length) {
       allVoted.value = true;
-    } else {
-      // Passer au pays suivant automatiquement si c'était un nouveau vote
-      if (!existingVote) {
-        goToNextCountry();
-      }
     }
   } catch (error) {
     console.error("Error submitting vote:", error);
