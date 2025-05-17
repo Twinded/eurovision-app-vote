@@ -64,7 +64,7 @@
                   </div>
                   <div class="flex items-baseline">
                     <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-400">
-                      {{ sortedCountryResults[0].totalScore.toFixed(1) }}
+                      {{ getCountryAverage(sortedCountryResults[0].name) }}
                     </span>
                     <span class="text-xs ml-1 opacity-80">/12</span>
                   </div>
@@ -94,7 +94,7 @@
                       </div>
                       <div class="flex items-baseline">
                         <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-400">
-                          {{ sortedCountryResults[1].totalScore.toFixed(1) }}
+                          {{ getCountryAverage(sortedCountryResults[1].name) }}
                         </span>
                         <span class="text-xs ml-1 opacity-80">/12</span>
                       </div>
@@ -123,7 +123,7 @@
                       </div>
                       <div class="flex items-baseline">
                         <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-600">
-                          {{ sortedCountryResults[2].totalScore.toFixed(1) }}
+                          {{ getCountryAverage(sortedCountryResults[2].name) }}
                         </span>
                         <span class="text-xs ml-1 opacity-80">/12</span>
                       </div>
@@ -224,10 +224,10 @@ const uniqueUsers = computed(() => {
 const countryResults = computed(() => {
   return countries.map(country => {
     const countryVotes = votes.value.filter(v => v.country === country.name);
-    const totalScore = countryVotes.length
-      ? countryVotes.reduce((sum, v) => sum + Number(v.rawNote), 0) / uniqueUsers.value
+    const average = countryVotes.length
+      ? countryVotes.reduce((sum, v) => sum + Number(v.rawNote), 0) / countryVotes.length
       : 0;
-    return { ...country, totalScore };
+    return { ...country, totalScore: average };
   });
 });
 
