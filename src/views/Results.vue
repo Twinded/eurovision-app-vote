@@ -20,12 +20,6 @@
           Podium
         </button>
         <button 
-          @click="currentView = 'list'"
-          class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          :class="currentView === 'list' ? 'bg-pink-500 text-white' : 'bg-black/30 text-gray-300 hover:bg-black/50'">
-          Liste complète
-        </button>
-        <button 
           @click="currentView = 'order'"
           class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           :class="currentView === 'order' ? 'bg-pink-500 text-white' : 'bg-black/30 text-gray-300 hover:bg-black/50'">
@@ -115,38 +109,6 @@
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- List View -->
-        <div v-else-if="currentView === 'list'" class="space-y-2">
-          <div v-for="(item, index) in sortedCountryResults" :key="item.name" 
-            class="bg-black/40 backdrop-blur-sm rounded-lg overflow-hidden shadow-md border border-purple-900/30 transition-all duration-300 active:scale-98"
-            @click="goToCountryDetail(item.name)">
-            
-            <div class="p-3 flex items-center">
-              <!-- Rank -->
-              <div class="w-7 h-7 flex items-center justify-center font-bold rounded-full bg-gradient-to-br from-purple-800 to-pink-900 text-white text-xs shadow-sm">
-                {{ index + 1 }}
-              </div>
-              
-              <!-- Country Info -->
-              <div class="flex items-center ml-3 flex-1">
-                <div class="w-8 h-6 flex items-center justify-center overflow-hidden">
-                  <CountryFlag :countryCode="item.code" :countryName="item.title" class="w-full h-auto rounded shadow-sm object-cover" />
-                </div>
-                <span class="ml-2 font-medium text-sm">{{ item.title }}</span>
-              </div>
-              
-              <!-- Score -->
-              <div class="flex items-baseline">
-                <span class="text-lg font-bold" 
-                  :class="getScoreColorClass(item.avgNote)">
-                  {{ item.avgNote.toFixed(1) }}
-                </span>
-                <span class="text-xs ml-1 opacity-70">/12</span>
               </div>
             </div>
           </div>
