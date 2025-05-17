@@ -156,6 +156,7 @@
         <div v-else class="space-y-2">
           <div v-for="(country, index) in countries" :key="country.name" 
             class="bg-black/40 backdrop-blur-sm rounded-lg overflow-hidden shadow-md border border-purple-900/30 transition-all duration-300 active:scale-98"
+            :class="{'opacity-50': !hasUserVoted(country.name)}"
             @click="goToVoting(index)">
             
             <div class="p-3 flex items-center">
@@ -172,13 +173,23 @@
                 <span class="ml-2 font-medium text-sm">{{ country.title }}</span>
               </div>
               
-              <!-- User's Vote -->
-              <div class="flex items-baseline">
-                <span class="text-lg font-bold" 
-                  :class="getScoreColorClass(getUserVote(country.name))">
-                  {{ getUserVote(country.name) }}
-                </span>
-                <span class="text-xs ml-1 opacity-70">/12</span>
+              <!-- Scores -->
+              <div class="flex items-center space-x-4">
+                <!-- User's Vote -->
+                <div class="flex items-baseline">
+                  <span class="text-base font-bold text-pink-400">
+                    {{ getUserVote(country.name) }}
+                  </span>
+                  <span class="text-xs ml-1 opacity-70">/12</span>
+                </div>
+                
+                <!-- Average Vote -->
+                <div class="flex items-baseline">
+                  <span class="text-base font-bold text-gray-400">
+                    {{ getCountryAverage(country.name) }}
+                  </span>
+                  <span class="text-xs ml-1 opacity-70">/12</span>
+                </div>
               </div>
             </div>
           </div>
@@ -250,6 +261,17 @@ function goToVoting(index) {
 function getUserVote(countryName) {
   const userVote = votes.value.find(v => v.country === countryName && v.user === userStore.pseudo);
   return userVote ? userVote.rawNote : '-';
+}
+
+function getCountryAverage(countryName) {
+  const countryVotes = votes.value.filter(v => v.country === countryName);
+  if (countryVotes.length === 0) return '-';
+  const average = countryVotes.reduce((sum, v) => sum + Number(v.rawNote), 0) / countryVotes.length;
+  return average.toFixed(1);
+}
+
+function hasUserVoted(countryName) {
+  return votes.value.some(v => v.country === countryName && v.user === userStore.pseudo);
 }
 
 function getScoreColorClass(score) {
