@@ -56,7 +56,7 @@
                 </div>
                 <div class="flex items-baseline">
                   <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-400">
-                    {{ sortedCountryResults[0].avgNote.toFixed(1) }}
+                    {{ sortedCountryResults[0].totalScore.toFixed(1) }}
                   </span>
                   <span class="text-xs ml-1 opacity-80">/12</span>
                 </div>
@@ -80,7 +80,7 @@
                     <div class="text-sm font-medium truncate">{{ sortedCountryResults[1].title }}</div>
                     <div class="flex items-baseline justify-center mt-1">
                       <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-400">
-                        {{ sortedCountryResults[1].avgNote.toFixed(1) }}
+                        {{ sortedCountryResults[1].totalScore.toFixed(1) }}
                       </span>
                       <span class="text-xs ml-1 opacity-80">/12</span>
                     </div>
@@ -103,7 +103,7 @@
                     <div class="text-sm font-medium truncate">{{ sortedCountryResults[2].title }}</div>
                     <div class="flex items-baseline justify-center mt-1">
                       <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-600">
-                        {{ sortedCountryResults[2].avgNote.toFixed(1) }}
+                        {{ sortedCountryResults[2].totalScore.toFixed(1) }}
                       </span>
                       <span class="text-xs ml-1 opacity-80">/12</span>
                     </div>
@@ -195,18 +195,23 @@ onMounted(() => {
   });
 });
 
+// Get unique users count
+const uniqueUsers = computed(() => {
+  return new Set(votes.value.map(vote => vote.user)).size;
+});
+
 const countryResults = computed(() => {
   return countries.map(country => {
     const countryVotes = votes.value.filter(v => v.country === country.name);
-    const avgNote = countryVotes.length
-      ? countryVotes.reduce((sum, v) => sum + Number(v.rawNote), 0) / countryVotes.length
+    const totalScore = countryVotes.length
+      ? countryVotes.reduce((sum, v) => sum + Number(v.rawNote), 0) / uniqueUsers.value
       : 0;
-    return { ...country, avgNote };
+    return { ...country, totalScore };
   });
 });
 
 const sortedCountryResults = computed(() => {
-  return [...countryResults.value].sort((a, b) => b.avgNote - a.avgNote);
+  return [...countryResults.value].sort((a, b) => b.totalScore - a.totalScore);
 });
 
 function goToCountryDetail(countryName) {

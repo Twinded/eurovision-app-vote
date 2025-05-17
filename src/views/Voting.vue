@@ -253,7 +253,7 @@ const route = useRoute();
 const loading = ref(true);
 const allVoted = ref(false);
 const currentIndex = ref(0);
-const note = ref(null);
+const note = ref(6);
 const dontCare = ref(false);
 const userVotes = ref([]);
 const voteElements = ref([]);
@@ -402,7 +402,7 @@ function loadExistingVote() {
     }
   } else {
     // Réinitialiser les valeurs pour un nouveau vote
-    note.value = null;
+    note.value = 6;
     dontCare.value = false;
     customNote.value = 0;
   }
@@ -448,6 +448,7 @@ function watchCurrentVotes() {
 
 function normalizeNote(value, min = 0, max = 100) {
   // Convertir la valeur personnalisée en 0 à 12
+  if (value === null) return 0;
   const normalized = ((value - min) / (max - min)) * 12;
   return Math.min(12, Math.max(0, normalized.toFixed(1))); // Clamp entre 0 et 12
 }
@@ -456,7 +457,7 @@ async function submitVote() {
   try {
     const finalNote = dontCare.value 
       ? normalizeNote(customNote.value || 0) 
-      : note.value;
+      : note.value || 0; // Si note est null, utiliser 0
 
     console.log("Submitting vote:", {
       user: userStore.pseudo,
