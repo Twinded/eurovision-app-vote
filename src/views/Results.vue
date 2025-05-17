@@ -47,18 +47,27 @@
               class="relative overflow-hidden rounded-xl shadow-xl transform transition-all duration-300 mb-4 bg-gradient-to-r from-yellow-600/30 to-amber-700/30 border border-yellow-500/50"
               @click="goToCountryDetail(sortedCountryResults[0].name)">
               <div class="absolute top-0 right-0 bg-yellow-500/80 text-black text-xs font-bold px-2 py-1 rounded-bl-md">1er</div>
-              <div class="backdrop-blur-sm p-4 flex items-center">
-                <div class="flex items-center flex-1">
+              <div class="backdrop-blur-sm p-4">
+                <div class="flex items-center mb-2">
                   <div class="w-14 h-10 flex items-center justify-center overflow-hidden">
                     <CountryFlag :countryCode="sortedCountryResults[0].code" :countryName="sortedCountryResults[0].title" class="w-full h-auto rounded shadow-md object-cover" />
                   </div>
                   <span class="ml-3 text-lg font-bold">{{ sortedCountryResults[0].title }}</span>
                 </div>
-                <div class="flex items-baseline">
-                  <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-400">
-                    {{ sortedCountryResults[0].totalScore.toFixed(1) }}
-                  </span>
-                  <span class="text-xs ml-1 opacity-80">/12</span>
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex items-baseline">
+                      <span class="text-sm font-medium text-gray-300">Mon vote:</span>
+                      <span class="text-base font-bold text-pink-400 ml-2">{{ getUserVote(sortedCountryResults[0].name) }}</span>
+                      <span class="text-xs ml-1 opacity-70">/12</span>
+                    </div>
+                  </div>
+                  <div class="flex items-baseline">
+                    <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-400">
+                      {{ sortedCountryResults[0].totalScore.toFixed(1) }}
+                    </span>
+                    <span class="text-xs ml-1 opacity-80">/12</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -77,12 +86,18 @@
                     </div>
                   </div>
                   <div class="text-center">
-                    <div class="text-sm font-medium truncate">{{ sortedCountryResults[1].title }}</div>
-                    <div class="flex items-baseline justify-center mt-1">
-                      <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-400">
-                        {{ sortedCountryResults[1].totalScore.toFixed(1) }}
-                      </span>
-                      <span class="text-xs ml-1 opacity-80">/12</span>
+                    <div class="text-sm font-medium truncate mb-2">{{ sortedCountryResults[1].title }}</div>
+                    <div class="flex items-baseline justify-center space-x-3">
+                      <div class="flex items-baseline">
+                        <span class="text-sm font-bold text-pink-400">{{ getUserVote(sortedCountryResults[1].name) }}</span>
+                        <span class="text-xs ml-1 opacity-70">/12</span>
+                      </div>
+                      <div class="flex items-baseline">
+                        <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-400">
+                          {{ sortedCountryResults[1].totalScore.toFixed(1) }}
+                        </span>
+                        <span class="text-xs ml-1 opacity-80">/12</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -100,12 +115,18 @@
                     </div>
                   </div>
                   <div class="text-center">
-                    <div class="text-sm font-medium truncate">{{ sortedCountryResults[2].title }}</div>
-                    <div class="flex items-baseline justify-center mt-1">
-                      <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-600">
-                        {{ sortedCountryResults[2].totalScore.toFixed(1) }}
-                      </span>
-                      <span class="text-xs ml-1 opacity-80">/12</span>
+                    <div class="text-sm font-medium truncate mb-2">{{ sortedCountryResults[2].title }}</div>
+                    <div class="flex items-baseline justify-center space-x-3">
+                      <div class="flex items-baseline">
+                        <span class="text-sm font-bold text-pink-400">{{ getUserVote(sortedCountryResults[2].name) }}</span>
+                        <span class="text-xs ml-1 opacity-70">/12</span>
+                      </div>
+                      <div class="flex items-baseline">
+                        <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-600">
+                          {{ sortedCountryResults[2].totalScore.toFixed(1) }}
+                        </span>
+                        <span class="text-xs ml-1 opacity-80">/12</span>
+                      </div>
                     </div>
                   </div>
                 </div>
