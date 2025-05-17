@@ -6,22 +6,6 @@
       <p class="text-lg font-medium text-pink-300">Chargement des pays...</p>
     </div>
     
-    <!-- All Voted State -->
-    <div v-else-if="allVoted" class="text-center bg-black/60 backdrop-blur-md p-8 rounded-xl shadow-2xl border border-pink-500/50 max-w-sm w-full transform transition-all duration-500 hover:scale-105">
-      <div class="text-5xl mb-4">🎉</div>
-      <h2 class="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 tracking-wide">Tous les votes sont soumis!</h2>
-      <p class="mb-6 text-base text-gray-300">Merci pour ta participation à l'Eurovision 2025!</p>
-      <button 
-        @click="goToResults" 
-        class="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:from-pink-500 hover:to-purple-500 transition transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 w-full"
-      >
-        <span>Voir les résultats</span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-        </svg>
-      </button>
-    </div>
-    
     <!-- Voting Interface -->
     <div v-else class="flex flex-col items-center w-full max-w-md">
       <!-- Progress Indicator -->
