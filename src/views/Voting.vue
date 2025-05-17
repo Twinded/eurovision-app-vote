@@ -240,7 +240,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { db } from '@/firebase/config';
 import { collection, addDoc, onSnapshot, query, where, getDocs, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useUserStore } from '@/store/user';
@@ -259,6 +259,7 @@ const userVotes = ref([]);
 const voteElements = ref([]);
 const editingVote = ref(false);
 const totalPlayers = ref(0);
+let unsubscribeVotes = null;
 
 // Refs for UI elements
 const flagContainer = ref(null);
@@ -426,23 +427,20 @@ async function loadUserVotes() {
 }
 
 function watchCurrentVotes() {
-  try {
-    console.log("Watching votes for country:", currentCountry.value);
-    const votesRef = collection(db, 'votes');
-    const votesQuery = query(votesRef, where('country', '==', currentCountry.value));
-
-    const unsubscribe = onSnapshot(votesQuery, (snapshot) => {
-      console.log(`Received ${snapshot.docs.length} votes for ${currentCountry.value}`);
-      currentVotes.value = snapshot.docs.map(doc => ({...doc.data(), id: doc.id}));
-    }, (error) => {
-      console.error("Error watching votes:", error);
-    });
-    
-    // Return unsubscribe function (not used here but good practice)
-    return unsubscribe;
-  } catch (error) {
-    console.error("Error setting up vote watcher:", error);
+  // Nettoyer l'ancien listener si présent
+  if (unsubscribeVotes) {
+    unsubscribeVotes();
+    unsubscribeVotes = null;
   }
+
+  const votesRef = collection(db, 'votes');
+  const votesQuery = query(votesRef, where('country', '==', currentCountry.value));
+
+  unsubscribeVotes = onSnapshot(votesQuery, (snapshot) => {
+    currentVotes.value = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+  }, (error) => {
+    console.error("Error watching votes:", error);
+  });
 }
 
 function normalizeNote(value, min = 0, max = 100) {
@@ -530,4 +528,8 @@ function goToPreviousCountry() {
 function goToResults() {
   router.push('/results');
 }
+
+onUnmounted(() => {
+  if (unsubscribeVotes) unsubscribeVotes();
+});
 </script>
