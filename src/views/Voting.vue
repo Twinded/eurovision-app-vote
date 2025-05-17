@@ -253,7 +253,7 @@ const route = useRoute();
 const loading = ref(true);
 const allVoted = ref(false);
 const currentIndex = ref(0);
-const note = ref(6);
+const note = ref(null);
 const dontCare = ref(false);
 const userVotes = ref([]);
 const voteElements = ref([]);
@@ -402,7 +402,7 @@ function loadExistingVote() {
     }
   } else {
     // Réinitialiser les valeurs pour un nouveau vote
-    note.value = 6;
+    note.value = null;
     dontCare.value = false;
     customNote.value = 0;
   }
